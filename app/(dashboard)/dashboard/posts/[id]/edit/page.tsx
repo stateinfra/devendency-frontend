@@ -23,7 +23,13 @@ export default async function EditPostPage({ params }: Props) {
   });
 
   if (!post) notFound();
-  if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+  const isAdmin = dbUser && ["ADMIN", "SUPER_ADMIN"].includes(dbUser.role);
+  if (post.authorId !== session.user.id && !isAdmin) {
     redirect("/");
   }
 

@@ -5,6 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { commentSchema } from "@/lib/validations/comment";
 
+const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
+
+async function isAdmin(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return !!user && ADMIN_ROLES.includes(user.role);
+}
+
 export async function createComment(postId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
@@ -44,7 +54,7 @@ export async function deleteComment(commentId: string) {
     include: { post: true },
   });
   if (!comment) return { error: "댓글을 찾을 수 없습니다" };
-  if (comment.authorId !== session.user.id && session.user.role !== "ADMIN") {
+  if (comment.authorId !== session.user.id && !(await isAdmin(session.user.id))) {
     return { error: "권한이 없습니다" };
   }
 

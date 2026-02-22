@@ -117,6 +117,46 @@ export async function resendVerificationCode(email: string) {
   return { success: true };
 }
 
+export async function resetPassword(
+  token: string,
+  email: string,
+  newPassword: string
+) {
+  if (newPassword.length < 6) {
+    return { error: "비밀번호는 6자 이상이어야 합니다" };
+  }
+
+  const record = await prisma.verificationToken.findFirst({
+    where: { identifier: `reset:${email}`, token },
+  });
+
+  if (!record) {
+    return { error: "유효하지 않은 링크입니다" };
+  }
+
+  if (record.expires < new Date()) {
+    await prisma.verificationToken.delete({
+      where: {
+        identifier_token: { identifier: `reset:${email}`, token },
+      },
+    });
+    return { error: "링크가 만료되었습니다. 관리자에게 다시 요청해주세요." };
+  }
+
+  const hashedPassword = await hash(newPassword, 12);
+
+  await prisma.user.update({
+    where: { email },
+    data: { password: hashedPassword },
+  });
+
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: `reset:${email}` },
+  });
+
+  return { success: true };
+}
+
 export async function checkEmailVerified(email: string) {
   const user = await prisma.user.findUnique({
     where: { email },

@@ -30,6 +30,7 @@ export const authConfig: NextAuthConfig = {
         );
         if (!isValid) return null;
         if (!user.emailVerified) return null;
+        if (user.suspended) return null;
 
         return {
           id: user.id,

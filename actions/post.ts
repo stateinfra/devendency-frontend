@@ -9,6 +9,16 @@ import { generateExcerpt } from "@/lib/utils";
 import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
 
+const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
+
+async function isAdmin(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return !!user && ADMIN_ROLES.includes(user.role);
+}
+
 const OWN_HOST = (process.env.S3_ENDPOINT || "").replace("/s3", "");
 const MAX_DOWNLOAD = 5 * 1024 * 1024; // 5MB
 
@@ -146,7 +156,7 @@ export async function updatePost(postId: string, formData: FormData) {
 
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return { error: "글을 찾을 수 없습니다" };
-  if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
+  if (post.authorId !== session.user.id && !(await isAdmin(session.user.id))) {
     return { error: "권한이 없습니다" };
   }
 
@@ -200,7 +210,7 @@ export async function deletePost(postId: string) {
 
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return { error: "글을 찾을 수 없습니다" };
-  if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
+  if (post.authorId !== session.user.id && !(await isAdmin(session.user.id))) {
     return { error: "권한이 없습니다" };
   }
 

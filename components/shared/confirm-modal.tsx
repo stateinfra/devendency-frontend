@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type ConfirmModalProps = {
@@ -12,6 +12,8 @@ type ConfirmModalProps = {
   confirmText?: string;
   cancelText?: string;
   loading?: boolean;
+  /** 이 값이 주어지면 유저가 동일한 텍스트를 입력해야 확인 버튼 활성화 */
+  requiredInput?: string;
 };
 
 export function ConfirmModal({
@@ -23,8 +25,16 @@ export function ConfirmModal({
   confirmText = "삭제",
   cancelText = "취소",
   loading = false,
+  requiredInput,
 }: ConfirmModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState("");
+
+  useEffect(() => {
+    if (!open) {
+      setInputValue("");
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,6 +58,9 @@ export function ConfirmModal({
 
   if (!open) return null;
 
+  const isConfirmDisabled =
+    loading || (requiredInput !== undefined && inputValue !== requiredInput);
+
   return createPortal(
     <div
       ref={overlayRef}
@@ -60,20 +73,40 @@ export function ConfirmModal({
       <div className="relative bg-card border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
         <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
         {description && (
-          <p className="text-sm text-slate-400 mb-6">{description}</p>
+          <p className="text-sm text-[#dcddde]/50 mb-4">{description}</p>
         )}
+
+        {requiredInput !== undefined && (
+          <div className="mb-6">
+            <p className="text-sm text-[#dcddde]/70 mb-2">
+              계속하려면 아래 텍스트를 입력해주세요.
+            </p>
+            <p className="text-sm font-mono font-semibold text-red-400 bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2 mb-3 select-all">
+              {requiredInput}
+            </p>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="위 텍스트를 입력해주세요"
+              className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/30 transition-colors"
+              autoFocus
+            />
+          </div>
+        )}
+
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
             disabled={loading}
-            className="h-9 px-4 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 transition-colors"
+            className="h-9 px-4 rounded-lg text-sm font-medium text-[#dcddde]/70 hover:bg-white/10 transition-colors"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            disabled={loading}
-            className="h-9 px-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+            disabled={isConfirmDisabled}
+            className="h-9 px-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {loading ? "처리 중..." : confirmText}
           </button>

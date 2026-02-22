@@ -10,6 +10,7 @@ enum Role {
   READER
   WRITER
   ADMIN
+  SUPER_ADMIN
 }
 
 model User {
@@ -21,6 +22,7 @@ model User {
   image         String?
   password      String?
   role          Role      @default(READER)
+  suspended     Boolean   @default(false)
   bio           String?
 
   accounts  Account[]
