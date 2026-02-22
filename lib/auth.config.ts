@@ -29,6 +29,7 @@ export const authConfig: NextAuthConfig = {
           user.password
         );
         if (!isValid) return null;
+        if (!user.emailVerified) return null;
 
         return {
           id: user.id,

@@ -1,8 +1,14 @@
 "use server";
 
+import crypto from "crypto";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations/auth";
+import { sendVerificationCode } from "@/lib/resend";
+
+function generateCode(): string {
+  return crypto.randomInt(100000, 999999).toString();
+}
 
 export async function registerUser(formData: FormData) {
   const raw = {
@@ -37,5 +43,87 @@ export async function registerUser(formData: FormData) {
     data: { username, name, email, password: hashedPassword },
   });
 
+  // Generate verification code and send email
+  const code = generateCode();
+  const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  // Delete any existing tokens for this email
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: email },
+  });
+
+  await prisma.verificationToken.create({
+    data: { identifier: email, token: code, expires },
+  });
+
+  await sendVerificationCode(email, code);
+
+  return { success: true, email };
+}
+
+export async function verifyEmail(email: string, code: string) {
+  const token = await prisma.verificationToken.findFirst({
+    where: { identifier: email, token: code },
+  });
+
+  if (!token) {
+    return { error: "인증 코드가 올바르지 않습니다" };
+  }
+
+  if (token.expires < new Date()) {
+    await prisma.verificationToken.delete({
+      where: { identifier_token: { identifier: email, token: code } },
+    });
+    return { error: "인증 코드가 만료되었습니다. 재발송해주세요." };
+  }
+
+  // Mark email as verified
+  await prisma.user.update({
+    where: { email },
+    data: { emailVerified: new Date() },
+  });
+
+  // Clean up token
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: email },
+  });
+
   return { success: true };
+}
+
+export async function resendVerificationCode(email: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    return { error: "등록되지 않은 이메일입니다" };
+  }
+
+  if (user.emailVerified) {
+    return { error: "이미 인증된 이메일입니다" };
+  }
+
+  const code = generateCode();
+  const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: email },
+  });
+
+  await prisma.verificationToken.create({
+    data: { identifier: email, token: code, expires },
+  });
+
+  await sendVerificationCode(email, code);
+
+  return { success: true };
+}
+
+export async function checkEmailVerified(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { emailVerified: true },
+  });
+
+  if (!user) return { status: "not_found" as const };
+  if (!user.emailVerified) return { status: "unverified" as const };
+  return { status: "verified" as const };
 }

@@ -21,8 +21,8 @@ export function RegisterForm() {
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success("회원가입이 완료되었습니다. 로그인해주세요.");
-      router.push("/login");
+      toast.success("인증 코드가 이메일로 발송되었습니다.");
+      router.push(`/verify?email=${encodeURIComponent(result.email || "")}`);
     }
   }
 
