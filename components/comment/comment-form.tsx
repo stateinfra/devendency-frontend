@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { createComment } from "@/actions/comment";
 import { toast } from "sonner";
 
@@ -36,16 +34,21 @@ export function CommentForm({ postId, parentId, onSuccess }: CommentFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <Textarea
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <textarea
         placeholder="댓글을 작성해주세요..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
+        className="w-full px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
       />
-      <Button type="submit" size="sm" disabled={isPending || !content.trim()}>
+      <button
+        type="submit"
+        disabled={isPending || !content.trim()}
+        className="px-4 py-2 rounded-full bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
         {isPending ? "작성 중..." : "댓글 작성"}
-      </Button>
+      </button>
     </form>
   );
 }

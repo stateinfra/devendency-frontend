@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type PaginationProps = {
   currentPage: number;
@@ -17,32 +15,36 @@ export function Pagination({
   const separator = baseUrl.includes("?") ? "&" : "?";
 
   return (
-    <div className="flex items-center justify-center gap-1">
-      <Button variant="ghost" size="icon" asChild disabled={currentPage <= 1}>
-        <Link href={`${baseUrl}${separator}page=${currentPage - 1}`}>
-          <ChevronLeft className="h-4 w-4" />
-        </Link>
-      </Button>
-      {pages.map((page) => (
-        <Button
-          key={page}
-          variant={page === currentPage ? "default" : "ghost"}
-          size="icon"
-          asChild
+    <div className="pt-6 flex items-center justify-center gap-1">
+      {currentPage > 1 && (
+        <Link
+          href={`${baseUrl}${separator}page=${currentPage - 1}`}
+          className="size-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] text-[#dcddde]/50 transition-colors"
         >
-          <Link href={`${baseUrl}${separator}page=${page}`}>{page}</Link>
-        </Button>
-      ))}
-      <Button
-        variant="ghost"
-        size="icon"
-        asChild
-        disabled={currentPage >= totalPages}
-      >
-        <Link href={`${baseUrl}${separator}page=${currentPage + 1}`}>
-          <ChevronRight className="h-4 w-4" />
+          <span className="material-symbols-outlined text-[20px]">chevron_left</span>
         </Link>
-      </Button>
+      )}
+      {pages.map((page) => (
+        <Link
+          key={page}
+          href={`${baseUrl}${separator}page=${page}`}
+          className={`size-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+            page === currentPage
+              ? "bg-primary text-white"
+              : "text-[#dcddde]/50 hover:bg-white/[0.06]"
+          }`}
+        >
+          {page}
+        </Link>
+      ))}
+      {currentPage < totalPages && (
+        <Link
+          href={`${baseUrl}${separator}page=${currentPage + 1}`}
+          className="size-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] text-[#dcddde]/50 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+        </Link>
+      )}
     </div>
   );
 }

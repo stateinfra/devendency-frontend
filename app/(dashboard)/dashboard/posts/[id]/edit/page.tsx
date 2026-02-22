@@ -19,35 +19,27 @@ export default async function EditPostPage({ params }: Props) {
 
   const post = await prisma.post.findUnique({
     where: { id },
-    include: { tags: true },
+    include: { tags: { include: { tag: true } } },
   });
 
   if (!post) notFound();
   if (post.authorId !== session.user.id && session.user.role !== "ADMIN") {
-    redirect("/dashboard/posts");
+    redirect("/");
   }
 
-  const [categories, tags] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
-    prisma.tag.findMany({ orderBy: { name: "asc" } }),
-  ]);
+  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">글 수정</h1>
-      <MarkdownEditor
-        postId={post.id}
-        initialData={{
-          title: post.title,
-          content: post.content,
-          excerpt: post.excerpt || "",
-          categoryId: post.categoryId || "",
-          tagIds: post.tags.map((t) => t.tagId),
-          published: post.published,
-        }}
-        categories={categories}
-        tags={tags}
-      />
-    </div>
+    <MarkdownEditor
+      postId={post.id}
+      initialData={{
+        title: post.title,
+        content: post.content,
+        tagNames: post.tags.map((t) => t.tag.name),
+        published: post.published,
+        slug: post.slug,
+      }}
+      tags={tags}
+    />
   );
 }

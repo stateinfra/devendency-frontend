@@ -36,7 +36,6 @@ export default async function TagPage({ params, searchParams }: Props) {
       skip: (page - 1) * POSTS_PER_PAGE,
       include: {
         author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, name: true, slug: true } },
         tags: { include: { tag: true } },
         _count: { select: { comments: true, likes: true } },
       },

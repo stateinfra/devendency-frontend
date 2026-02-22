@@ -1,10 +1,8 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import { format, formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+export function cn(...classes: (string | boolean | undefined | null)[]) {
+  return classes.filter(Boolean).join(" ");
 }
 
 export function formatDate(date: Date | string) {
@@ -17,12 +15,17 @@ export function formatRelativeDate(date: Date | string) {
 
 export function generateExcerpt(content: string, maxLength = 200): string {
   const plainText = content
-    .replace(/#{1,6}\s/g, "")
-    .replace(/\*\*|__/g, "")
-    .replace(/\*|_/g, "")
-    .replace(/`{1,3}[^`]*`{1,3}/g, "")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")      // images
+    .replace(/#{1,6}\s/g, "")                    // headings
+    .replace(/\*\*|__/g, "")                     // bold
+    .replace(/\*|_/g, "")                        // italic
+    .replace(/`{3}[\s\S]*?`{3}/g, "")           // fenced code blocks
+    .replace(/`[^`]+`/g, "")                     // inline code
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")    // links → text only
+    .replace(/!\[.*$/gm, "")                     // broken image lines
+    .replace(/https?:\/\/\S+/g, "")             // raw URLs
     .replace(/\n+/g, " ")
+    .replace(/\s{2,}/g, " ")
     .trim();
   return plainText.length > maxLength
     ? plainText.slice(0, maxLength) + "..."

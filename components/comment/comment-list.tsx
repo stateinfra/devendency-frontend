@@ -29,7 +29,10 @@ export function CommentList({
 }: CommentListProps) {
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">댓글 {comments.length}개</h3>
+      <h3 className="text-lg font-bold text-[#dcddde] flex items-center gap-2">
+        <span className="material-symbols-outlined text-[20px] text-[#dcddde]/40">chat_bubble</span>
+        댓글 {comments.length}개
+      </h3>
       <CommentForm postId={postId} />
       <div className="space-y-4">
         {comments.map((comment) => (

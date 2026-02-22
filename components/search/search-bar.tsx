@@ -2,8 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 
 export function SearchBar() {
   const router = useRouter();
@@ -18,11 +16,13 @@ export function SearchBar() {
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-      <Input
+      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#dcddde]/30">
+        search
+      </span>
+      <input
         type="search"
         placeholder="검색..."
-        className="pl-8 w-full md:w-[200px]"
+        className="w-full md:w-[200px] h-9 pl-9 pr-3 rounded-full border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />

@@ -13,7 +13,8 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(uuid())
+  username      String?   @unique
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -22,18 +23,20 @@ model User {
   role          Role      @default(READER)
   bio           String?
 
-  accounts Account[]
-  sessions Session[]
-  posts    Post[]
-  comments Comment[]
-  likes    Like[]
+  accounts  Account[]
+  sessions  Session[]
+  posts     Post[]
+  comments  Comment[]
+  likes     Like[]
+  followers Follow[] @relation("Following")
+  following Follow[] @relation("Followers")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(uuid())
   userId            String
   type              String
   provider          String
@@ -52,7 +55,7 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -68,7 +71,7 @@ model VerificationToken {
 }
 
 model Post {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   title       String
   slug        String    @unique
   content     String    @db.Text
@@ -76,13 +79,8 @@ model Post {
   coverImage  String?
   published   Boolean   @default(false)
   publishedAt DateTime?
-  viewCount   Int       @default(0)
-
   authorId   String
   author     User      @relation(fields: [authorId], references: [id])
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-
   tags     PostTag[]
   comments Comment[]
   likes    Like[]
@@ -92,21 +90,10 @@ model Post {
 
   @@index([published, publishedAt(sort: Desc)])
   @@index([authorId])
-  @@index([categoryId])
-}
-
-model Category {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  slug        String  @unique
-  description String?
-  posts       Post[]
-
-  createdAt DateTime @default(now())
 }
 
 model Tag {
-  id    String    @id @default(cuid())
+  id    String    @id @default(uuid())
   name  String    @unique
   slug  String    @unique
   posts PostTag[]
@@ -124,7 +111,7 @@ model PostTag {
 }
 
 model Comment {
-  id      String @id @default(cuid())
+  id      String @id @default(uuid())
   content String @db.Text
 
   postId   String
@@ -141,6 +128,17 @@ model Comment {
 
   @@index([postId])
   @@index([authorId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([followerId, followingId])
 }
 
 model Like {

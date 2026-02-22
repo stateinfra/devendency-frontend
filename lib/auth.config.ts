@@ -45,12 +45,17 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true },
-        });
         token.id = user.id;
-        token.role = dbUser?.role ?? "READER";
+      }
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, username: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.username = dbUser.username;
+        }
       }
       return token;
     },
@@ -58,6 +63,7 @@ export const authConfig: NextAuthConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.username = token.username as string | undefined;
       }
       return session;
     },

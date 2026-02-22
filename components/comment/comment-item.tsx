@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { CommentForm } from "@/components/comment/comment-form";
 import { deleteComment } from "@/actions/comment";
 import { formatRelativeDate } from "@/lib/utils";
-import { Reply, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmModal } from "@/components/shared/confirm-modal";
 
 type CommentItemProps = {
   comment: {
@@ -24,85 +22,105 @@ type CommentItemProps = {
   };
   postId: string;
   currentUserId?: string;
+  isReply?: boolean;
 };
 
 export function CommentItem({
   comment,
   postId,
   currentUserId,
+  isReply,
 }: CommentItemProps) {
   const [showReply, setShowReply] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  const initials = comment.author.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || "U";
 
   function handleDelete() {
     startTransition(async () => {
       const result = await deleteComment(comment.id);
       if (result.error) toast.error(result.error);
+      setShowDeleteModal(false);
     });
   }
 
   return (
     <div className="space-y-3">
       <div className="flex gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={comment.author.image || undefined} />
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-        </Avatar>
+        {comment.author.image ? (
+          <img
+            src={comment.author.image}
+            alt={comment.author.name || "User"}
+            className="size-8 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="size-8 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-bold text-[#dcddde]/60 flex-shrink-0">
+            {comment.author.name?.[0]?.toUpperCase() || "U"}
+          </div>
+        )}
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{comment.author.name}</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm font-bold text-[#dcddde]">
+              {comment.author.name}
+            </span>
+            <span className="text-xs text-[#dcddde]/30">
               {formatRelativeDate(comment.createdAt)}
             </span>
           </div>
-          <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => setShowReply(!showReply)}
-            >
-              <Reply className="h-3 w-3 mr-1" />
-              답글
-            </Button>
-            {currentUserId === comment.author.id && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-destructive"
-                onClick={handleDelete}
-                disabled={isPending}
+          <p className="text-sm text-[#dcddde]/70 whitespace-pre-wrap">
+            {comment.content}
+          </p>
+          <div className="flex gap-2 pt-1">
+            {!isReply && (
+              <button
+                onClick={() => setShowReply(!showReply)}
+                className="flex items-center gap-1 text-xs text-[#dcddde]/30 hover:text-primary transition-colors"
               >
-                <Trash2 className="h-3 w-3 mr-1" />
-                삭제
-              </Button>
+                <span className="material-symbols-outlined text-[14px]">reply</span>
+                답글
+              </button>
+            )}
+            {currentUserId === comment.author.id && (
+              <>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={isPending}
+                  className="flex items-center gap-1 text-xs text-[#dcddde]/30 hover:text-red-500 transition-colors disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                  삭제
+                </button>
+                <ConfirmModal
+                  open={showDeleteModal}
+                  onClose={() => setShowDeleteModal(false)}
+                  onConfirm={handleDelete}
+                  title="댓글을 삭제하시겠습니까?"
+                  description="삭제된 댓글은 복구할 수 없습니다."
+                  loading={isPending}
+                />
+              </>
             )}
           </div>
           {showReply && (
-            <CommentForm
-              postId={postId}
-              parentId={comment.id}
-              onSuccess={() => setShowReply(false)}
-            />
+            <div className="pt-2">
+              <CommentForm
+                postId={postId}
+                parentId={comment.id}
+                onSuccess={() => setShowReply(false)}
+              />
+            </div>
           )}
         </div>
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-11 space-y-3 border-l-2 pl-4">
+        <div className="ml-11 space-y-3 border-l-2 border-white/[0.06] pl-4">
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               postId={postId}
               currentUserId={currentUserId}
+              isReply
             />
           ))}
         </div>

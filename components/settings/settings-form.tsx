@@ -2,15 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { updateProfile } from "@/actions/profile";
 import { toast } from "sonner";
 
 type SettingsFormProps = {
   initialData: {
+    username: string;
     name: string;
     bio: string;
   };
@@ -19,6 +16,7 @@ type SettingsFormProps = {
 export function SettingsForm({ initialData }: SettingsFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [username, setUsername] = useState(initialData.username);
   const [name, setName] = useState(initialData.name);
   const [bio, setBio] = useState(initialData.bio);
 
@@ -26,6 +24,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     e.preventDefault();
 
     const formData = new FormData();
+    formData.set("username", username);
     formData.set("name", name);
     formData.set("bio", bio);
 
@@ -40,29 +39,60 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     });
   }
 
+  const inputClass = "w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border rounded-lg p-6">
-      <div>
-        <Label htmlFor="name">이름</Label>
-        <Input
+    <form onSubmit={handleSubmit} className="space-y-4 p-6 bg-card rounded-xl border border-white/[0.08]">
+      <div className="space-y-2">
+        <label htmlFor="username" className="text-sm font-medium text-[#dcddde]/70">
+          사용자명
+        </label>
+        <div className="flex">
+          <span className="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-white/[0.06] bg-white/[0.06] text-sm text-[#dcddde]/40">
+            @
+          </span>
+          <input
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            minLength={3}
+            maxLength={20}
+            pattern="[a-zA-Z0-9_-]+"
+            className="w-full h-10 px-3 rounded-r-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="name" className="text-sm font-medium text-[#dcddde]/70">
+          이름
+        </label>
+        <input
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className={inputClass}
         />
       </div>
-      <div>
-        <Label htmlFor="bio">소개</Label>
-        <Textarea
+      <div className="space-y-2">
+        <label htmlFor="bio" className="text-sm font-medium text-[#dcddde]/70">
+          소개
+        </label>
+        <textarea
           id="bio"
           placeholder="자기소개를 입력하세요"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={4}
+          className="w-full px-3 py-2 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
         />
       </div>
-      <Button type="submit" disabled={isPending}>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="h-10 px-6 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+      >
         {isPending ? "저장 중..." : "저장"}
-      </Button>
+      </button>
     </form>
   );
 }

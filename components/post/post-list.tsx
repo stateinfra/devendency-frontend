@@ -1,3 +1,5 @@
+"use client"
+
 import { PostCard } from "@/components/post/post-card";
 import { Pagination } from "@/components/shared/pagination";
 import type { PostWithRelations } from "@/types";
@@ -17,8 +19,9 @@ export function PostList({
 }: PostListProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">아직 작성된 글이 없습니다.</p>
+      <div className="text-center py-16">
+        <span className="material-symbols-outlined text-[48px] text-[#dcddde]/20 mb-4 block">article</span>
+        <p className="text-[#dcddde]/40">아직 작성된 글이 없습니다.</p>
       </div>
     );
   }

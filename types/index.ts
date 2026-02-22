@@ -1,21 +1,13 @@
-import type { Role } from "@prisma/client";
-
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      username?: string | null;
       name?: string | null;
       email?: string | null;
       image?: string | null;
       role: string;
     };
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: string;
   }
 }
 
@@ -28,19 +20,14 @@ export type PostWithRelations = {
   coverImage: string | null;
   published: boolean;
   publishedAt: Date | null;
-  viewCount: number;
   createdAt: Date;
   updatedAt: Date;
   author: {
     id: string;
+    username: string | null;
     name: string | null;
     image: string | null;
   };
-  category: {
-    id: string;
-    name: string;
-    slug: string;
-  } | null;
   tags: {
     tag: {
       id: string;

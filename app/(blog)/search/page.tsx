@@ -22,7 +22,7 @@ export default async function SearchPage({ searchParams }: Props) {
     return (
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">검색</h1>
-        <p className="text-muted-foreground">검색어를 입력해주세요.</p>
+        <p className="text-slate-500 dark:text-slate-400">검색어를 입력해주세요.</p>
       </div>
     );
   }
@@ -43,7 +43,6 @@ export default async function SearchPage({ searchParams }: Props) {
       skip: (page - 1) * POSTS_PER_PAGE,
       include: {
         author: { select: { id: true, name: true, image: true } },
-        category: { select: { id: true, name: true, slug: true } },
         tags: { include: { tag: true } },
         _count: { select: { comments: true, likes: true } },
       },
@@ -56,7 +55,7 @@ export default async function SearchPage({ searchParams }: Props) {
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">검색 결과</h1>
-      <p className="text-muted-foreground mb-8">
+      <p className="text-slate-500 dark:text-slate-400 mb-8">
         &quot;{query}&quot;에 대한 검색 결과 {total}건
       </p>
       <PostList

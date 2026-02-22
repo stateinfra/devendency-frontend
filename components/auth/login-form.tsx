@@ -3,9 +3,6 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export function LoginForm() {
@@ -36,28 +33,38 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">이메일</Label>
-        <Input
+        <label htmlFor="email" className="text-sm font-medium text-[#dcddde]/70">
+          이메일
+        </label>
+        <input
           id="email"
           name="email"
           type="email"
           placeholder="you@example.com"
           required
+          className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">비밀번호</Label>
-        <Input
+        <label htmlFor="password" className="text-sm font-medium text-[#dcddde]/70">
+          비밀번호
+        </label>
+        <input
           id="password"
           name="password"
           type="password"
           placeholder="••••••"
           required
+          className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <button
+        type="submit"
+        className="w-full h-10 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+        disabled={loading}
+      >
         {loading ? "로그인 중..." : "로그인"}
-      </Button>
+      </button>
     </form>
   );
 }
