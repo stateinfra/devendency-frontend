@@ -11,18 +11,18 @@ export function PostCard({ post }: { post: PostWithRelations }) {
   return (
     <Link href={`/posts/${post.slug}`} className="block">
       <article className="flex flex-col sm:flex-row gap-5 p-5 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer">
-        {/* 표지 이미지 */}
+        {/* 표지 이미지 — 왼쪽 세로 */}
         {post.coverImage && (
-          <div className="sm:order-last sm:shrink-0">
+          <div className="sm:shrink-0 sm:w-[180px] sm:self-stretch overflow-hidden rounded-lg">
             <img
               src={post.coverImage}
               alt={post.title}
-              className="w-full sm:w-[140px] h-[100px] sm:h-full object-cover rounded-lg"
+              className="w-full h-[160px] sm:h-full object-cover"
             />
           </div>
         )}
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Tags */}
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             {post.tags.slice(0, 3).map(({ tag }) => (
