@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { tags, posts, postTags } from "@/lib/db/schema";
-import { eq, and, desc, sql, count } from "drizzle-orm";
+import { eq, and, desc, count, inArray } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { POSTS_PER_PAGE } from "@/lib/constants";
 import type { PostWithRelations } from "@/types";
@@ -29,10 +29,24 @@ export default async function TagPage({ params, searchParams }: Props) {
   const tag = await db.query.tags.findFirst({ where: eq(tags.slug, slug) });
   if (!tag) notFound();
 
-  const whereCondition = and(
-    eq(posts.published, true),
-    sql`EXISTS (SELECT 1 FROM "PostTag" WHERE "PostTag"."postId" = "Post"."id" AND "PostTag"."tagId" = ${tag.id})`,
-  );
+  // PostTag JOIN으로 해당 태그의 postId 목록 조회
+  const taggedPostIds = await db
+    .select({ postId: postTags.postId })
+    .from(postTags)
+    .where(eq(postTags.tagId, tag.id));
+
+  const ids = taggedPostIds.map((r) => r.postId);
+
+  if (ids.length === 0) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">#{tag.name}</h1>
+        <PostList posts={[]} currentPage={1} totalPages={0} baseUrl={`/tags/${slug}`} />
+      </div>
+    );
+  }
+
+  const whereCondition = and(eq(posts.published, true), inArray(posts.id, ids));
 
   const [postResults, [{ total }]] = await Promise.all([
     db.query.posts.findMany({
