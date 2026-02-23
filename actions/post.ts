@@ -180,6 +180,7 @@ export async function createPost(formData: FormData) {
     published,
   } = parsed.data;
   const content = await processContentImages(rawContent, session.user.id);
+  const coverImage = (formData.get("coverImage") as string) || null;
 
   const finalSlug = crypto.randomUUID();
 
@@ -220,6 +221,7 @@ export async function createPost(formData: FormData) {
         slug: finalSlug,
         content,
         excerpt: excerpt || generateExcerpt(content),
+        coverImage,
         published,
         publishedAt: published ? new Date() : null,
         authorId: session.user.id,
@@ -279,6 +281,10 @@ export async function updatePost(postId: string, formData: FormData) {
     published,
   } = parsed.data;
   const content = await processContentImages(rawContent, session.user.id);
+  const coverImageRaw = formData.get("coverImage") as string;
+  // 빈 문자열이면 제거, URL이면 유지, 필드 없으면 기존 값 유지
+  const coverImage =
+    coverImageRaw === "" ? null : coverImageRaw || post.coverImage;
 
   const tagConnections = parsedTagNames?.length
     ? await findOrCreateTags(parsedTagNames)
@@ -295,6 +301,7 @@ export async function updatePost(postId: string, formData: FormData) {
         title,
         content,
         excerpt: excerpt || generateExcerpt(content),
+        coverImage,
         published,
         publishedAt:
           published && !wasPublished ? new Date() : post.publishedAt,

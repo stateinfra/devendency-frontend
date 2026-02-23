@@ -21,10 +21,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await db.query.posts.findFirst({
     where: eq(posts.slug, slug),
-    columns: { title: true, excerpt: true },
+    columns: { title: true, excerpt: true, coverImage: true },
   });
   if (!post) return { title: "글을 찾을 수 없습니다" };
-  return { title: post.title, description: post.excerpt || undefined };
+  return {
+    title: post.title,
+    description: post.excerpt || undefined,
+    openGraph: post.coverImage
+      ? { images: [{ url: post.coverImage }] }
+      : undefined,
+  };
 }
 
 export default async function PostPage({ params }: Props) {
@@ -81,6 +87,17 @@ export default async function PostPage({ params }: Props) {
         </aside>
 
         <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full">
+          {/* 표지 이미지 */}
+          {post.coverImage && (
+            <div className="mb-10 rounded-2xl overflow-hidden">
+              <img
+                src={post.coverImage}
+                alt={post.title}
+                className="w-full object-cover max-h-[480px]"
+              />
+            </div>
+          )}
+
           <header className="mb-10">
             <div className="flex items-center gap-2 text-sm mb-6 font-medium flex-wrap">
               {post.tags.map(({ tag }) => (

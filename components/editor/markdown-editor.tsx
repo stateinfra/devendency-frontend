@@ -97,6 +97,7 @@ type MarkdownEditorProps = {
     tagNames: string[];
     published: boolean;
     slug?: string;
+    coverImage?: string | null;
   };
   tags: Tag[];
 };
@@ -388,10 +389,32 @@ export function MarkdownEditor({
   const [tagInput, setTagInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const [coverImage, setCoverImage] = useState<string | null>(
+    initialData?.coverImage ?? null,
+  );
+  const [isCoverUploading, setIsCoverUploading] = useState(false);
+
   const tagInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Cover image upload ──
+  async function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setIsCoverUploading(true);
+    try {
+      const url = await uploadImageFile(file);
+      setCoverImage(url);
+    } catch {
+      toast.error("표지 이미지 업로드에 실패했습니다");
+    } finally {
+      setIsCoverUploading(false);
+    }
+  }
 
   // ── Drag & drop overlay ──
   const [isDragging, setIsDragging] = useState(false);
@@ -510,6 +533,7 @@ export function MarkdownEditor({
       formData.set("excerpt", "");
       selectedTags.forEach((name) => formData.append("tagNames", name));
       formData.set("published", "false");
+      formData.set("coverImage", coverImage ?? "");
 
       const result = postId
         ? await updatePost(postId, formData)
@@ -538,6 +562,7 @@ export function MarkdownEditor({
     formData.set("excerpt", "");
     selectedTags.forEach((name) => formData.append("tagNames", name));
     formData.set("published", String(published));
+    formData.set("coverImage", coverImage ?? "");
 
     startTransition(async () => {
       const result = postId
@@ -634,6 +659,61 @@ export function MarkdownEditor({
       {/* Scrollable editor area */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 py-10 space-y-4">
+          {/* Cover image */}
+          <div>
+            {coverImage ? (
+              <div className="relative group w-full rounded-xl overflow-hidden mb-2">
+                <img
+                  src={coverImage}
+                  alt="표지 이미지"
+                  className="w-full object-cover max-h-[300px]"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => coverFileInputRef.current?.click()}
+                    className="px-3 py-1.5 text-xs rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                  >
+                    변경
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCoverImage(null)}
+                    className="px-3 py-1.5 text-xs rounded-full bg-white/20 hover:bg-red-500/60 text-white transition-colors"
+                  >
+                    제거
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => coverFileInputRef.current?.click()}
+                disabled={isCoverUploading}
+                className="w-full h-[80px] rounded-xl border border-dashed border-white/[0.08] hover:border-white/20 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-400 transition-all disabled:opacity-40"
+              >
+                {isCoverUploading ? (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
+                  </svg>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+                    <span className="text-xs">표지 이미지 추가</span>
+                  </>
+                )}
+              </button>
+            )}
+            <input
+              ref={coverFileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={handleCoverImageChange}
+            />
+          </div>
+
           {/* Title */}
           <input
             placeholder="제목을 입력하세요"

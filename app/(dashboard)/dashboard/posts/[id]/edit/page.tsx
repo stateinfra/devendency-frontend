@@ -46,6 +46,7 @@ export default async function EditPostPage({ params }: Props) {
         tagNames: post.tags.map((t) => t.tag.name),
         published: post.published,
         slug: post.slug,
+        coverImage: post.coverImage,
       }}
       tags={allTags}
     />
