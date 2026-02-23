@@ -11,6 +11,17 @@ export function PostCard({ post }: { post: PostWithRelations }) {
   return (
     <Link href={`/posts/${post.slug}`} className="block">
       <article className="flex flex-col sm:flex-row gap-5 p-5 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer">
+        {/* 표지 이미지 */}
+        {post.coverImage && (
+          <div className="sm:order-last sm:shrink-0">
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="w-full sm:w-[140px] h-[100px] sm:h-full object-cover rounded-lg"
+            />
+          </div>
+        )}
+
         <div className="flex-1 flex flex-col">
           {/* Tags */}
           <div className="flex items-center gap-2 mb-2 flex-wrap">
