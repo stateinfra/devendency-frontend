@@ -2,7 +2,9 @@
 
 import crypto from "crypto";
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { users, verificationTokens } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 import { registerSchema } from "@/lib/validations/auth";
 import { sendVerificationCode } from "@/lib/resend";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -14,7 +16,8 @@ function generateCode(): string {
 export async function registerUser(formData: FormData) {
   const ip = await getClientIp();
   const rl = checkRateLimit("register", ip);
-  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+  if (!rl.success)
+    return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   const raw = {
     username: formData.get("username") as string,
@@ -30,13 +33,15 @@ export async function registerUser(formData: FormData) {
 
   const { username, name, email, password } = parsed.data;
 
-  const existingEmail = await prisma.user.findUnique({ where: { email } });
+  const existingEmail = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
   if (existingEmail) {
     return { error: "이미 사용 중인 이메일입니다" };
   }
 
-  const existingUsername = await prisma.user.findUnique({
-    where: { username },
+  const existingUsername = await db.query.users.findFirst({
+    where: eq(users.username, username),
   });
   if (existingUsername) {
     return { error: "이미 사용 중인 사용자명입니다" };
@@ -44,8 +49,11 @@ export async function registerUser(formData: FormData) {
 
   const hashedPassword = await hash(password, 12);
 
-  await prisma.user.create({
-    data: { username, name, email, password: hashedPassword },
+  await db.insert(users).values({
+    username,
+    name,
+    email,
+    password: hashedPassword,
   });
 
   // Generate verification code and send email
@@ -53,12 +61,14 @@ export async function registerUser(formData: FormData) {
   const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
   // Delete any existing tokens for this email
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
-  });
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, email));
 
-  await prisma.verificationToken.create({
-    data: { identifier: email, token: code, expires },
+  await db.insert(verificationTokens).values({
+    identifier: email,
+    token: code,
+    expires,
   });
 
   await sendVerificationCode(email, code);
@@ -69,10 +79,14 @@ export async function registerUser(formData: FormData) {
 export async function verifyEmail(email: string, code: string) {
   const ip = await getClientIp();
   const rl = checkRateLimit("verifyEmail", ip);
-  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+  if (!rl.success)
+    return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
-  const token = await prisma.verificationToken.findFirst({
-    where: { identifier: email, token: code },
+  const token = await db.query.verificationTokens.findFirst({
+    where: and(
+      eq(verificationTokens.identifier, email),
+      eq(verificationTokens.token, code),
+    ),
   });
 
   if (!token) {
@@ -80,22 +94,27 @@ export async function verifyEmail(email: string, code: string) {
   }
 
   if (token.expires < new Date()) {
-    await prisma.verificationToken.delete({
-      where: { identifier_token: { identifier: email, token: code } },
-    });
+    await db
+      .delete(verificationTokens)
+      .where(
+        and(
+          eq(verificationTokens.identifier, email),
+          eq(verificationTokens.token, code),
+        ),
+      );
     return { error: "인증 코드가 만료되었습니다. 재발송해주세요." };
   }
 
   // Mark email as verified
-  await prisma.user.update({
-    where: { email },
-    data: { emailVerified: new Date() },
-  });
+  await db
+    .update(users)
+    .set({ emailVerified: new Date(), updatedAt: new Date() })
+    .where(eq(users.email, email));
 
   // Clean up token
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
-  });
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, email));
 
   return { success: true };
 }
@@ -103,9 +122,12 @@ export async function verifyEmail(email: string, code: string) {
 export async function resendVerificationCode(email: string) {
   const ip = await getClientIp();
   const rl = checkRateLimit("resendCode", ip);
-  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+  if (!rl.success)
+    return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
   if (!user) {
     return { error: "등록되지 않은 이메일입니다" };
   }
@@ -117,12 +139,14 @@ export async function resendVerificationCode(email: string) {
   const code = generateCode();
   const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
-  });
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, email));
 
-  await prisma.verificationToken.create({
-    data: { identifier: email, token: code, expires },
+  await db.insert(verificationTokens).values({
+    identifier: email,
+    token: code,
+    expires,
   });
 
   await sendVerificationCode(email, code);
@@ -133,18 +157,22 @@ export async function resendVerificationCode(email: string) {
 export async function resetPassword(
   token: string,
   email: string,
-  newPassword: string
+  newPassword: string,
 ) {
   const ip = await getClientIp();
   const rl = checkRateLimit("resetPassword", ip);
-  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+  if (!rl.success)
+    return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   if (newPassword.length < 6) {
     return { error: "비밀번호는 6자 이상이어야 합니다" };
   }
 
-  const record = await prisma.verificationToken.findFirst({
-    where: { identifier: `reset:${email}`, token },
+  const record = await db.query.verificationTokens.findFirst({
+    where: and(
+      eq(verificationTokens.identifier, `reset:${email}`),
+      eq(verificationTokens.token, token),
+    ),
   });
 
   if (!record) {
@@ -152,32 +180,35 @@ export async function resetPassword(
   }
 
   if (record.expires < new Date()) {
-    await prisma.verificationToken.delete({
-      where: {
-        identifier_token: { identifier: `reset:${email}`, token },
-      },
-    });
+    await db
+      .delete(verificationTokens)
+      .where(
+        and(
+          eq(verificationTokens.identifier, `reset:${email}`),
+          eq(verificationTokens.token, token),
+        ),
+      );
     return { error: "링크가 만료되었습니다. 관리자에게 다시 요청해주세요." };
   }
 
   const hashedPassword = await hash(newPassword, 12);
 
-  await prisma.user.update({
-    where: { email },
-    data: { password: hashedPassword },
-  });
+  await db
+    .update(users)
+    .set({ password: hashedPassword, updatedAt: new Date() })
+    .where(eq(users.email, email));
 
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: `reset:${email}` },
-  });
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, `reset:${email}`));
 
   return { success: true };
 }
 
 export async function checkEmailVerified(email: string) {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { emailVerified: true },
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, email),
+    columns: { emailVerified: true },
   });
 
   if (!user) return { status: "not_found" as const };

@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { tags } from "@/lib/db/schema";
+import { asc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import type { Metadata } from "next";
@@ -12,7 +14,7 @@ export default async function NewPostPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
+  const allTags = await db.query.tags.findMany({ orderBy: asc(tags.name) });
 
-  return <MarkdownEditor tags={tags} />;
+  return <MarkdownEditor tags={allTags} />;
 }

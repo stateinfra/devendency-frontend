@@ -1,20 +1,22 @@
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { posts } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export async function GET() {
-  const posts = await prisma.post.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: "desc" },
-    take: 50,
-    include: {
-      author: { select: { name: true } },
-      tags: { include: { tag: true } },
+  const allPosts = await db.query.posts.findMany({
+    where: eq(posts.published, true),
+    orderBy: desc(posts.publishedAt),
+    limit: 50,
+    with: {
+      author: { columns: { name: true } },
+      tags: { with: { tag: true } },
     },
   });
 
   const siteUrl = SITE_CONFIG.url;
 
-  const items = posts
+  const items = allPosts
     .map((post) => {
       const pubDate = post.publishedAt ?? post.createdAt;
       const categories = post.tags

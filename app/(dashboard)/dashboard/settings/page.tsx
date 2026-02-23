@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/settings/settings-form";
 import type { Metadata } from "next";
@@ -12,9 +14,9 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { username: true, name: true, bio: true, image: true },
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+    columns: { username: true, name: true, bio: true, image: true },
   });
 
   return (

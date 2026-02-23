@@ -3,7 +3,9 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -18,15 +20,15 @@ export const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, credentials.email as string),
         });
 
         if (!user || !user.password) return null;
 
         const isValid = await compare(
           credentials.password as string,
-          user.password
+          user.password,
         );
         if (!isValid) return null;
         if (!user.emailVerified) return null;
@@ -50,9 +52,9 @@ export const authConfig: NextAuthConfig = {
         token.id = user.id;
       }
       if (token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { role: true, username: true },
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.id, token.id as string),
+          columns: { role: true, username: true },
         });
         if (dbUser) {
           token.role = dbUser.role;

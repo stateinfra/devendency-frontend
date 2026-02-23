@@ -1,20 +1,19 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "../lib/db/schema";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const queryClient = postgres(process.env.DATABASE_URL!, { prepare: false });
+const db = drizzle(queryClient, { schema });
 
 async function main() {
   console.log("Seed completed!");
 }
 
 main()
-  .then(() => prisma.$disconnect())
+  .then(() => queryClient.end())
   .catch((e) => {
     console.error(e);
-    prisma.$disconnect();
+    queryClient.end();
     process.exit(1);
   });

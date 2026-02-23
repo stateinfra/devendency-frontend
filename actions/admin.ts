@@ -1,77 +1,76 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { users, posts, verificationTokens } from "@/lib/db/schema";
+import { eq, ilike, or, desc, count, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import {
+  requireAdmin as requireAdminHelper,
+  requireSuperAdmin as requireSuperAdminHelper,
+} from "@/lib/db/helpers";
 import { sendPasswordResetEmail } from "@/lib/resend";
 import crypto from "crypto";
 
 const ADMIN_PAGE_SIZE = 20;
-const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
 async function requireAdmin() {
   const session = await auth();
   if (!session?.user) throw new Error("권한이 없습니다");
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-  if (!dbUser || !ADMIN_ROLES.includes(dbUser.role)) {
-    throw new Error("권한이 없습니다");
-  }
+  await requireAdminHelper(session.user.id);
   return session;
 }
 
 async function requireSuperAdmin() {
   const session = await auth();
   if (!session?.user) throw new Error("권한이 없습니다");
-
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-  if (!dbUser || dbUser.role !== "SUPER_ADMIN") {
-    throw new Error("권한이 없습니다");
-  }
+  await requireSuperAdminHelper(session.user.id);
   return session;
 }
 
 export async function getUsers(page: number = 1, search: string = "") {
   await requireAdmin();
 
-  const where = search
-    ? {
-        OR: [
-          { name: { contains: search, mode: "insensitive" as const } },
-          { email: { contains: search, mode: "insensitive" as const } },
-          { username: { contains: search, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
+  const whereClause = search
+    ? or(
+        ilike(users.name, `%${search}%`),
+        ilike(users.email, `%${search}%`),
+        ilike(users.username, `%${search}%`),
+      )
+    : undefined;
 
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        role: true,
-        suspended: true,
-        emailVerified: true,
-        createdAt: true,
-        _count: { select: { posts: true, comments: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * ADMIN_PAGE_SIZE,
-      take: ADMIN_PAGE_SIZE,
-    }),
-    prisma.user.count({ where }),
+  const [userList, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        suspended: users.suspended,
+        emailVerified: users.emailVerified,
+        createdAt: users.createdAt,
+        _count: {
+          posts: sql<number>`(SELECT count(*) FROM "Post" WHERE "Post"."authorId" = "User"."id")::int`,
+          comments: sql<number>`(SELECT count(*) FROM "Comment" WHERE "Comment"."authorId" = "User"."id")::int`,
+        },
+      })
+      .from(users)
+      .where(whereClause)
+      .orderBy(desc(users.createdAt))
+      .limit(ADMIN_PAGE_SIZE)
+      .offset((page - 1) * ADMIN_PAGE_SIZE),
+    db
+      .select({ total: count() })
+      .from(users)
+      .where(whereClause),
   ]);
 
-  return { users, total, totalPages: Math.ceil(total / ADMIN_PAGE_SIZE) };
+  return {
+    users: userList,
+    total,
+    totalPages: Math.ceil(total / ADMIN_PAGE_SIZE),
+  };
 }
 
 export async function suspendUser(userId: string) {
@@ -81,10 +80,10 @@ export async function suspendUser(userId: string) {
     return { error: "자기 자신을 정지할 수 없습니다" };
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { suspended: true },
-  });
+  await db
+    .update(users)
+    .set({ suspended: true, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   revalidatePath("/dashboard/admin");
   return { success: true };
@@ -93,10 +92,10 @@ export async function suspendUser(userId: string) {
 export async function unsuspendUser(userId: string) {
   await requireAdmin();
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { suspended: false },
-  });
+  await db
+    .update(users)
+    .set({ suspended: false, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   revalidatePath("/dashboard/admin");
   return { success: true };
@@ -109,7 +108,7 @@ export async function deleteUser(userId: string) {
     return { error: "자기 자신을 삭제할 수 없습니다" };
   }
 
-  await prisma.user.delete({ where: { id: userId } });
+  await db.delete(users).where(eq(users.id, userId));
 
   revalidatePath("/dashboard/admin");
   return { success: true };
@@ -118,9 +117,9 @@ export async function deleteUser(userId: string) {
 export async function adminSendPasswordReset(userId: string) {
   await requireAdmin();
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true },
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { email: true },
   });
 
   if (!user?.email) {
@@ -130,12 +129,14 @@ export async function adminSendPasswordReset(userId: string) {
   const token = crypto.randomUUID();
   const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: `reset:${user.email}` },
-  });
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, `reset:${user.email}`));
 
-  await prisma.verificationToken.create({
-    data: { identifier: `reset:${user.email}`, token, expires },
+  await db.insert(verificationTokens).values({
+    identifier: `reset:${user.email}`,
+    token,
+    expires,
   });
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -150,42 +151,54 @@ export async function adminSendPasswordReset(userId: string) {
 export async function getPosts(page: number = 1, search: string = "") {
   await requireAdmin();
 
-  const where = search
-    ? {
-        OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { author: { name: { contains: search, mode: "insensitive" as const } } },
-          { author: { username: { contains: search, mode: "insensitive" as const } } },
-        ],
-      }
-    : {};
+  const whereClause = search
+    ? or(
+        ilike(posts.title, `%${search}%`),
+        sql`EXISTS (SELECT 1 FROM "User" WHERE "User"."id" = "Post"."authorId" AND (
+          "User"."name" ILIKE ${`%${search}%`} OR "User"."username" ILIKE ${`%${search}%`}
+        ))`,
+      )
+    : undefined;
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        published: true,
-        publishedAt: true,
-        createdAt: true,
-        author: { select: { name: true, username: true } },
-        _count: { select: { comments: true, likes: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * ADMIN_PAGE_SIZE,
-      take: ADMIN_PAGE_SIZE,
-    }),
-    prisma.post.count({ where }),
+  const [postList, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        slug: posts.slug,
+        published: posts.published,
+        publishedAt: posts.publishedAt,
+        createdAt: posts.createdAt,
+        author: {
+          name: sql<string | null>`(SELECT "User"."name" FROM "User" WHERE "User"."id" = "Post"."authorId")`,
+          username: sql<string | null>`(SELECT "User"."username" FROM "User" WHERE "User"."id" = "Post"."authorId")`,
+        },
+        _count: {
+          comments: sql<number>`(SELECT count(*) FROM "Comment" WHERE "Comment"."postId" = "Post"."id")::int`,
+          likes: sql<number>`(SELECT count(*) FROM "Like" WHERE "Like"."postId" = "Post"."id")::int`,
+        },
+      })
+      .from(posts)
+      .where(whereClause)
+      .orderBy(desc(posts.createdAt))
+      .limit(ADMIN_PAGE_SIZE)
+      .offset((page - 1) * ADMIN_PAGE_SIZE),
+    db
+      .select({ total: count() })
+      .from(posts)
+      .where(whereClause),
   ]);
 
-  return { posts, total, totalPages: Math.ceil(total / ADMIN_PAGE_SIZE) };
+  return {
+    posts: postList,
+    total,
+    totalPages: Math.ceil(total / ADMIN_PAGE_SIZE),
+  };
 }
 
 export async function changeUserRole(
   userId: string,
-  role: "READER" | "WRITER" | "ADMIN"
+  role: "READER" | "WRITER" | "ADMIN",
 ) {
   const session = await requireSuperAdmin();
 
@@ -193,10 +206,10 @@ export async function changeUserRole(
     return { error: "자기 자신의 역할은 변경할 수 없습니다" };
   }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { role },
-  });
+  await db
+    .update(users)
+    .set({ role, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   revalidatePath("/dashboard/admin");
   return { success: true };
@@ -205,7 +218,7 @@ export async function changeUserRole(
 export async function adminDeletePost(postId: string) {
   await requireAdmin();
 
-  await prisma.post.delete({ where: { id: postId } });
+  await db.delete(posts).where(eq(posts.id, postId));
 
   revalidatePath("/dashboard/admin");
   revalidatePath("/");

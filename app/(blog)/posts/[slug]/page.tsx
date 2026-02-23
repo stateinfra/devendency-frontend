@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { posts, likes, comments } from "@/lib/db/schema";
+import { eq, and, isNull, desc, asc, count } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { PostContent } from "@/components/post/post-content";
 import { PostActions } from "@/components/post/post-actions";
@@ -17,42 +19,25 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    select: { title: true, excerpt: true },
+  const post = await db.query.posts.findFirst({
+    where: eq(posts.slug, slug),
+    columns: { title: true, excerpt: true },
   });
-
   if (!post) return { title: "글을 찾을 수 없습니다" };
-
-  return {
-    title: post.title,
-    description: post.excerpt || undefined,
-  };
+  return { title: post.title, description: post.excerpt || undefined };
 }
 
 export default async function PostPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
 
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    include: {
-      author: { select: { id: true, username: true, name: true, image: true, bio: true } },
-      tags: { include: { tag: true } },
-      comments: {
-        where: { parentId: null },
-        include: {
-          author: { select: { id: true, name: true, image: true } },
-          replies: {
-            include: {
-              author: { select: { id: true, name: true, image: true } },
-            },
-            orderBy: { createdAt: "asc" },
-          },
-        },
-        orderBy: { createdAt: "desc" },
+  const post = await db.query.posts.findFirst({
+    where: eq(posts.slug, slug),
+    with: {
+      author: {
+        columns: { id: true, username: true, name: true, image: true, bio: true },
       },
-      _count: { select: { likes: true } },
+      tags: { with: { tag: true } },
     },
   });
 
@@ -60,20 +45,34 @@ export default async function PostPage({ params }: Props) {
     notFound();
   }
 
-  const liked = session?.user
-    ? !!(await prisma.like.findUnique({
-        where: {
-          userId_postId: { userId: session.user.id, postId: post.id },
+  const [[{ likeCount }], topComments, likedRow] = await Promise.all([
+    db.select({ likeCount: count() }).from(likes).where(eq(likes.postId, post.id)),
+    db.query.comments.findMany({
+      where: and(eq(comments.postId, post.id), isNull(comments.parentId)),
+      orderBy: desc(comments.createdAt),
+      with: {
+        author: { columns: { id: true, name: true, image: true } },
+        replies: {
+          orderBy: asc(comments.createdAt),
+          with: {
+            author: { columns: { id: true, name: true, image: true } },
+          },
         },
-      }))
-    : false;
+      },
+    }),
+    session?.user
+      ? db.query.likes.findFirst({
+          where: and(eq(likes.userId, session.user.id), eq(likes.postId, post.id)),
+        })
+      : Promise.resolve(null),
+  ]);
 
+  const liked = !!likedRow;
   const isAuthor = session?.user?.id === post.authorId;
 
   return (
-    <LikeProvider postId={post.id} initialLiked={liked} initialLikeCount={post._count.likes}>
+    <LikeProvider postId={post.id} initialLiked={liked} initialLikeCount={likeCount}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative">
-        {/* Left Sidebar - Actions + ToC */}
         <aside className="hidden lg:block lg:col-span-3 relative">
           <div className="sticky top-28 space-y-8">
             <PostActions variant="sidebar" />
@@ -81,11 +80,8 @@ export default async function PostPage({ params }: Props) {
           </div>
         </aside>
 
-        {/* Article */}
         <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full">
-          {/* Article Header */}
           <header className="mb-10">
-            {/* Tags */}
             <div className="flex items-center gap-2 text-sm mb-6 font-medium flex-wrap">
               {post.tags.map(({ tag }) => (
                 <Link
@@ -98,17 +94,12 @@ export default async function PostPage({ params }: Props) {
               ))}
             </div>
 
-            {/* Title */}
             <h1 className="text-3xl sm:text-4xl md:text-[2.5rem] font-bold tracking-tight text-white leading-tight mb-6 break-keep">
               {post.title}
             </h1>
 
-            {/* Author & Date */}
             <div className="flex items-center justify-between py-4 border-b border-white/[0.08]">
-              <Link
-                href={`/users/@${post.author.username}`}
-                className="flex items-center gap-3 group"
-              >
+              <Link href={`/users/@${post.author.username}`} className="flex items-center gap-3 group">
                 {post.author.image ? (
                   <img
                     src={post.author.image}
@@ -146,28 +137,20 @@ export default async function PostPage({ params }: Props) {
             </div>
           </header>
 
-          {/* Content */}
           <PostContent content={post.content} />
 
-          {/* Bottom Like Section */}
           <div className="mt-16 pt-8 border-t border-white/[0.08]">
             <div className="flex justify-center mb-8">
               <PostActions variant="bottom" />
             </div>
           </div>
 
-          {/* Mobile Actions */}
           <div className="lg:hidden my-8">
             <PostActions variant="inline" />
           </div>
 
-          {/* Comments */}
           <div className="mt-8">
-            <CommentList
-              postId={post.id}
-              comments={post.comments}
-              currentUserId={session?.user?.id}
-            />
+            <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
           </div>
         </article>
       </div>

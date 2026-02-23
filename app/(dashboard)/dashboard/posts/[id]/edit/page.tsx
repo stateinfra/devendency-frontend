@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { posts, users, tags } from "@/lib/db/schema";
+import { eq, asc } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import type { Metadata } from "next";
@@ -17,23 +19,23 @@ export default async function EditPostPage({ params }: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const post = await prisma.post.findUnique({
-    where: { id },
-    include: { tags: { include: { tag: true } } },
+  const post = await db.query.posts.findFirst({
+    where: eq(posts.id, id),
+    with: { tags: { with: { tag: true } } },
   });
 
   if (!post) notFound();
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
+  const dbUser = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+    columns: { role: true },
   });
   const isAdmin = dbUser && ["ADMIN", "SUPER_ADMIN"].includes(dbUser.role);
   if (post.authorId !== session.user.id && !isAdmin) {
     redirect("/");
   }
 
-  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } });
+  const allTags = await db.query.tags.findMany({ orderBy: asc(tags.name) });
 
   return (
     <MarkdownEditor
@@ -45,7 +47,7 @@ export default async function EditPostPage({ params }: Props) {
         published: post.published,
         slug: post.slug,
       }}
-      tags={tags}
+      tags={allTags}
     />
   );
 }

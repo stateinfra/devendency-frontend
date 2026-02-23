@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { posts, follows, tags as tagsTable } from "@/lib/db/schema";
+import { eq, desc, and, inArray, sql, count } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { FeedTabs } from "@/components/post/feed-tabs";
 import { POSTS_PER_PAGE } from "@/lib/constants";
@@ -17,41 +19,59 @@ export default async function HomePage({ searchParams }: Props) {
 
   const session = tab === "following" ? await auth() : null;
 
-  // Build query based on tab
-  let where: Record<string, unknown> = { published: true };
-  let orderBy: Record<string, unknown> = { publishedAt: "desc" as const };
-
-  if (tab === "popular") {
-    orderBy = { likes: { _count: "desc" as const } };
-  }
+  // Build where condition
+  let whereCondition = eq(posts.published, true);
 
   if (tab === "following" && session?.user?.id) {
-    const following = await prisma.follow.findMany({
-      where: { followerId: session.user.id },
-      select: { followingId: true },
+    const following = await db.query.follows.findMany({
+      where: eq(follows.followerId, session.user.id),
+      columns: { followingId: true },
     });
     const followingIds = following.map((f) => f.followingId);
-    where = { published: true, authorId: { in: followingIds } };
+    if (followingIds.length > 0) {
+      whereCondition = and(
+        eq(posts.published, true),
+        inArray(posts.authorId, followingIds),
+      )!;
+    } else {
+      whereCondition = sql`false` as any;
+    }
   }
 
-  const [posts, total, popularTags] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy,
-      take: POSTS_PER_PAGE,
-      skip: (page - 1) * POSTS_PER_PAGE,
-      include: {
-        author: { select: { id: true, username: true, name: true, image: true } },
-        tags: { include: { tag: true } },
-        _count: { select: { comments: true, likes: true } },
+  // Build orderBy
+  const orderByClause =
+    tab === "popular"
+      ? desc(
+          sql`(SELECT count(*) FROM "Like" WHERE "Like"."postId" = "Post"."id")`,
+        )
+      : desc(posts.publishedAt);
+
+  const [postResults, [{ total }], popularTags] = await Promise.all([
+    db.query.posts.findMany({
+      where: whereCondition,
+      orderBy: orderByClause,
+      limit: POSTS_PER_PAGE,
+      offset: (page - 1) * POSTS_PER_PAGE,
+      with: {
+        author: {
+          columns: { id: true, username: true, name: true, image: true },
+        },
+        tags: { with: { tag: true } },
+        comments: { columns: { id: true } },
+        likes: { columns: { userId: true } },
       },
     }),
-    prisma.post.count({ where }),
-    prisma.tag.findMany({
-      orderBy: { name: "asc" },
-      take: 8,
+    db.select({ total: count() }).from(posts).where(whereCondition),
+    db.query.tags.findMany({
+      orderBy: desc(tagsTable.name),
+      limit: 8,
     }),
   ]);
+
+  const postsWithCounts = postResults.map((p) => ({
+    ...p,
+    _count: { comments: p.comments.length, likes: p.likes.length },
+  }));
 
   const totalPages = Math.ceil(total / POSTS_PER_PAGE);
   const isFollowingNoAuth = tab === "following" && !session?.user;
@@ -60,7 +80,6 @@ export default async function HomePage({ searchParams }: Props) {
   return (
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-        {/* Posts */}
         <div className="lg:col-span-8">
           <FeedTabs />
           {isFollowingNoAuth ? (
@@ -80,7 +99,7 @@ export default async function HomePage({ searchParams }: Props) {
             </div>
           ) : (
             <PostList
-              posts={posts as unknown as PostWithRelations[]}
+              posts={postsWithCounts as unknown as PostWithRelations[]}
               currentPage={page}
               totalPages={totalPages}
               baseUrl={baseUrl}
@@ -88,7 +107,6 @@ export default async function HomePage({ searchParams }: Props) {
           )}
         </div>
 
-        {/* Sidebar */}
         <aside className="hidden lg:block lg:col-span-4 space-y-8 pl-4">
           {popularTags.length > 0 && (
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">

@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { posts } from "@/lib/db/schema";
+import { eq, and, or, ilike, desc, count } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { POSTS_PER_PAGE } from "@/lib/constants";
 import type { PostWithRelations } from "@/types";
@@ -27,28 +29,31 @@ export default async function SearchPage({ searchParams }: Props) {
     );
   }
 
-  const where = {
-    published: true as const,
-    OR: [
-      { title: { contains: query, mode: "insensitive" as const } },
-      { content: { contains: query, mode: "insensitive" as const } },
-    ],
-  };
+  const whereCondition = and(
+    eq(posts.published, true),
+    or(ilike(posts.title, `%${query}%`), ilike(posts.content, `%${query}%`)),
+  );
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy: { publishedAt: "desc" },
-      take: POSTS_PER_PAGE,
-      skip: (page - 1) * POSTS_PER_PAGE,
-      include: {
-        author: { select: { id: true, name: true, image: true } },
-        tags: { include: { tag: true } },
-        _count: { select: { comments: true, likes: true } },
+  const [postResults, [{ total }]] = await Promise.all([
+    db.query.posts.findMany({
+      where: whereCondition,
+      orderBy: desc(posts.publishedAt),
+      limit: POSTS_PER_PAGE,
+      offset: (page - 1) * POSTS_PER_PAGE,
+      with: {
+        author: { columns: { id: true, name: true, image: true } },
+        tags: { with: { tag: true } },
+        comments: { columns: { id: true } },
+        likes: { columns: { userId: true } },
       },
     }),
-    prisma.post.count({ where }),
+    db.select({ total: count() }).from(posts).where(whereCondition),
   ]);
+
+  const postsWithCounts = postResults.map((p) => ({
+    ...p,
+    _count: { comments: p.comments.length, likes: p.likes.length },
+  }));
 
   const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
@@ -59,7 +64,7 @@ export default async function SearchPage({ searchParams }: Props) {
         &quot;{query}&quot;에 대한 검색 결과 {total}건
       </p>
       <PostList
-        posts={posts as unknown as PostWithRelations[]}
+        posts={postsWithCounts as unknown as PostWithRelations[]}
         currentPage={page}
         totalPages={totalPages}
         baseUrl={`/search?q=${encodeURIComponent(query)}`}
