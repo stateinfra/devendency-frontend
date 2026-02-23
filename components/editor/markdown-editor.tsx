@@ -198,12 +198,18 @@ class ImageWidget extends WidgetType {
   ) {
     super();
   }
+  ignoreEvent() {
+    return false;
+  }
   toDOM() {
     const wrap = document.createElement("div");
     wrap.style.padding = "6px 0";
+    wrap.style.cursor = "pointer";
+
     const img = document.createElement("img");
     img.src = this.url;
     img.alt = this.alt;
+    img.draggable = false;
     img.style.maxWidth = "100%";
     img.style.maxHeight = "360px";
     img.style.borderRadius = "8px";
@@ -211,6 +217,7 @@ class ImageWidget extends WidgetType {
     img.onerror = () => {
       wrap.style.display = "none";
     };
+
     wrap.appendChild(img);
     return wrap;
   }
@@ -386,6 +393,50 @@ export function MarkdownEditor({
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Drag & drop overlay ──
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes("Files")) {
+      dragCounter.current++;
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (!files?.length || !editorRef.current?.view) return;
+
+    for (const file of Array.from(files)) {
+      if (isImageFile(file)) {
+        insertImageToEditor(editorRef.current.view, file);
+      }
+    }
+  }, []);
+
   // ── Tag logic ──
   const filteredTags = availableTags.filter(
     (t) =>
@@ -505,7 +556,24 @@ export function MarkdownEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#202020]">
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-[#202020]"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag & drop overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+          <div className="flex flex-col items-center gap-3 p-10 rounded-2xl border-2 border-dashed border-primary/60 bg-white/[0.03]">
+            <span className="material-symbols-outlined text-5xl text-primary/80">upload</span>
+            <p className="text-sm font-medium text-slate-300">이미지를 여기에 놓아주세요</p>
+            <p className="text-xs text-slate-500">JPG, PNG, GIF, WebP</p>
+          </div>
+        </div>
+      )}
+
       {/* Minimal top bar */}
       <div className="flex items-center justify-between px-5 h-14 border-b border-white/[0.06] shrink-0">
         <Link

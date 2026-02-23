@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { uploadImage } from "@/lib/s3";
 import sharp from "sharp";
 import crypto from "crypto";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = new Set([
@@ -28,6 +29,14 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "로그인이 필요합니다" }, { status: 401 });
+    }
+
+    const rl = checkRateLimit("upload", session.user.id);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "업로드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
     }
 
     const formData = await req.formData();

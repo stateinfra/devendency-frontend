@@ -5,12 +5,17 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations/auth";
 import { sendVerificationCode } from "@/lib/resend";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 function generateCode(): string {
   return crypto.randomInt(100000, 999999).toString();
 }
 
 export async function registerUser(formData: FormData) {
+  const ip = await getClientIp();
+  const rl = checkRateLimit("register", ip);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   const raw = {
     username: formData.get("username") as string,
     name: formData.get("name") as string,
@@ -62,6 +67,10 @@ export async function registerUser(formData: FormData) {
 }
 
 export async function verifyEmail(email: string, code: string) {
+  const ip = await getClientIp();
+  const rl = checkRateLimit("verifyEmail", ip);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   const token = await prisma.verificationToken.findFirst({
     where: { identifier: email, token: code },
   });
@@ -92,6 +101,10 @@ export async function verifyEmail(email: string, code: string) {
 }
 
 export async function resendVerificationCode(email: string) {
+  const ip = await getClientIp();
+  const rl = checkRateLimit("resendCode", ip);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     return { error: "등록되지 않은 이메일입니다" };
@@ -122,6 +135,10 @@ export async function resetPassword(
   email: string,
   newPassword: string
 ) {
+  const ip = await getClientIp();
+  const rl = checkRateLimit("resetPassword", ip);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   if (newPassword.length < 6) {
     return { error: "비밀번호는 6자 이상이어야 합니다" };
   }

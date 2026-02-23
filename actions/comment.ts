@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { commentSchema } from "@/lib/validations/comment";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
@@ -18,6 +19,9 @@ async function isAdmin(userId: string): Promise<boolean> {
 export async function createComment(postId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const rl = checkRateLimit("createComment", session.user.id);
+  if (!rl.success) return { error: "댓글 작성 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   const raw = {
     content: formData.get("content") as string,
@@ -48,6 +52,9 @@ export async function createComment(postId: string, formData: FormData) {
 export async function deleteComment(commentId: string) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const rl = checkRateLimit("deleteComment", session.user.id);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   const comment = await prisma.comment.findUnique({
     where: { id: commentId },

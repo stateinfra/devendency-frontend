@@ -8,6 +8,7 @@ import slugify from "slugify";
 import { generateExcerpt } from "@/lib/utils";
 import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
@@ -109,6 +110,9 @@ export async function createPost(formData: FormData) {
     return { error: "로그인이 필요합니다" };
   }
 
+  const rl = checkRateLimit("createPost", session.user.id);
+  if (!rl.success) return { error: "글 작성 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   const raw = {
     title: formData.get("title") as string,
     content: formData.get("content") as string,
@@ -153,6 +157,9 @@ export async function createPost(formData: FormData) {
 export async function updatePost(postId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const rl = checkRateLimit("updatePost", session.user.id);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return { error: "글을 찾을 수 없습니다" };
@@ -208,6 +215,9 @@ export async function deletePost(postId: string) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
 
+  const rl = checkRateLimit("deletePost", session.user.id);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post) return { error: "글을 찾을 수 없습니다" };
   if (post.authorId !== session.user.id && !(await isAdmin(session.user.id))) {
@@ -222,6 +232,9 @@ export async function deletePost(postId: string) {
 export async function toggleLike(postId: string) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const rl = checkRateLimit("toggleLike", session.user.id);
+  if (!rl.success) return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
   const existing = await prisma.like.findUnique({
     where: { userId_postId: { userId: session.user.id, postId } },
