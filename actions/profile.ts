@@ -9,7 +9,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
 
-const AVATAR_MAX_BYTES = 2 * 1024 * 1024; // 2MB
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5MB
 
 function detectAvatarMime(buf: Buffer): string | null {
   if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "image/jpeg";
@@ -74,7 +74,7 @@ export async function updateAvatar(formData: FormData) {
 
   const file = formData.get("avatar") as File | null;
   if (!file || file.size === 0) return { error: "파일을 선택해주세요" };
-  if (file.size > AVATAR_MAX_BYTES) return { error: "파일 크기는 2MB 이하여야 합니다" };
+  if (file.size > AVATAR_MAX_BYTES) return { error: "파일 크기는 5MB 이하여야 합니다" };
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const mime = detectAvatarMime(buffer);

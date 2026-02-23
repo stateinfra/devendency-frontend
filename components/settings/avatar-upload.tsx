@@ -24,8 +24,8 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
     if (!file) return;
 
     // 클라이언트 사이드 미리 검증
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("파일 크기는 2MB 이하여야 합니다");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("파일 크기는 5MB 이하여야 합니다");
       return;
     }
     if (!file.type.startsWith("image/")) {
@@ -104,7 +104,7 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
       {/* 안내 텍스트 */}
       <div className="flex flex-col gap-1">
         <p className="text-sm text-[#dcddde]/70">프로필 사진</p>
-        <p className="text-xs text-[#dcddde]/40">JPG, PNG, WebP, GIF · 최대 2MB</p>
+        <p className="text-xs text-[#dcddde]/40">JPG, PNG, WebP, GIF · 최대 5MB</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
