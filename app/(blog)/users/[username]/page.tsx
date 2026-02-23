@@ -105,7 +105,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
           </div>
           {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
           <FollowStats
-            userId={user.id}
+            username={user.username!}
             postCount={postCount}
             followerCount={followerCount}
             followingCount={followingCount}
