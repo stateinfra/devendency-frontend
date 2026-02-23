@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { posts, tags, postTags, likes } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc, lt, count as drizzleCount } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
 import { isAdmin } from "@/lib/db/helpers";
@@ -187,7 +187,32 @@ export async function createPost(formData: FormData) {
     ? await findOrCreateTags(parsedTagNames)
     : [];
 
+  const MAX_DRAFTS = 3;
+
   const post = await db.transaction(async (tx) => {
+    // 임시저장 시 초과 초안 자동 삭제 (가장 오래된 것부터)
+    if (!published) {
+      const [{ draftCount }] = await tx
+        .select({ draftCount: drizzleCount() })
+        .from(posts)
+        .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)));
+
+      if (draftCount >= MAX_DRAFTS) {
+        const oldest = await tx
+          .select({ id: posts.id })
+          .from(posts)
+          .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)))
+          .orderBy(asc(posts.createdAt))
+          .limit(draftCount - MAX_DRAFTS + 1);
+
+        if (oldest.length > 0) {
+          for (const { id } of oldest) {
+            await tx.delete(posts).where(eq(posts.id, id));
+          }
+        }
+      }
+    }
+
     const [newPost] = await tx
       .insert(posts)
       .values({
