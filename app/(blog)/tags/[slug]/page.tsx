@@ -14,13 +14,15 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const tag = await db.query.tags.findFirst({ where: eq(tags.slug, slug) });
+  const decodedSlug = decodeURIComponent(slug);
+  const tag = await db.query.tags.findFirst({ where: eq(tags.slug, decodedSlug) });
   if (!tag) return { title: "태그를 찾을 수 없습니다" };
   return { title: `#${tag.name}` };
 }
 
 export default async function TagPage({ params, searchParams }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
 
