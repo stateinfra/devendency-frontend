@@ -5,6 +5,7 @@ import Image from "next/image";
 import { updateAvatar } from "@/actions/profile";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type AvatarUploadProps = {
   currentImage: string | null;
@@ -13,6 +14,7 @@ type AvatarUploadProps = {
 
 export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [isPending, startTransition] = useTransition();
@@ -45,6 +47,8 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
         setPreview(currentImage); // 원복
       } else {
         toast.success("프로필 사진이 변경되었습니다");
+        // JWT 세션 갱신 → 헤더 아바타에 즉시 반영
+        await updateSession();
         router.refresh();
       }
       // 같은 파일 재선택 가능하도록 초기화
