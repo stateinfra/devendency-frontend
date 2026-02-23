@@ -101,7 +101,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={4}
-            className="w-full px-3 py-2 rounded-lg border border-white/[0.06] bg-white/[0.04] text-xs text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
+            className="w-full px-3 py-2 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
           />
         </div>
 

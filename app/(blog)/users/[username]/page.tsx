@@ -102,7 +102,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
             )}
           </div>
-          {user.bio && <p className="text-slate-400 text-lg leading-relaxed">{user.bio}</p>}
+          {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
           <div className="flex items-center justify-center md:justify-start gap-6 text-sm">
             <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{postCount}</span><span className="text-slate-500">포스트</span></div>
             <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{followerCount}</span><span className="text-slate-500">팔로워</span></div>
