@@ -5,6 +5,7 @@ import { eq, and, or, ilike, desc, count } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { PostCard } from "@/components/post/post-card";
 import { FollowButton } from "@/components/user/follow-button";
+import { FollowStats } from "@/components/user/follow-stats";
 import { ProfilePostSearch } from "@/components/user/profile-post-search";
 import type { PostWithRelations } from "@/types";
 import type { Metadata } from "next";
@@ -103,12 +104,13 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             )}
           </div>
           {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
-          <div className="flex items-center justify-center md:justify-start gap-6 text-sm">
-            <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{postCount}</span><span className="text-slate-500">포스트</span></div>
-            <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{followerCount}</span><span className="text-slate-500">팔로워</span></div>
-            <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{followingCount}</span><span className="text-slate-500">팔로잉</span></div>
-            <div className="flex gap-1.5 items-center"><span className="font-bold text-white">{totalLikes}</span><span className="text-slate-500">좋아요</span></div>
-          </div>
+          <FollowStats
+            userId={user.id}
+            postCount={postCount}
+            followerCount={followerCount}
+            followingCount={followingCount}
+            totalLikes={totalLikes}
+          />
         </div>
       </div>
       <div className="border-b border-white/[0.08] mb-8">

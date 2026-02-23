@@ -7,6 +7,32 @@ import { and, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+export type FollowUser = {
+  id: string;
+  name: string | null;
+  username: string | null;
+  image: string | null;
+};
+
+export async function getFollowList(
+  userId: string,
+  type: "followers" | "following",
+): Promise<FollowUser[]> {
+  if (type === "followers") {
+    const rows = await db.query.follows.findMany({
+      where: eq(follows.followingId, userId),
+      with: { follower: { columns: { id: true, name: true, username: true, image: true } } },
+    });
+    return rows.map((r) => r.follower);
+  } else {
+    const rows = await db.query.follows.findMany({
+      where: eq(follows.followerId, userId),
+      with: { following: { columns: { id: true, name: true, username: true, image: true } } },
+    });
+    return rows.map((r) => r.following);
+  }
+}
+
 export async function toggleFollow(targetUserId: string) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
