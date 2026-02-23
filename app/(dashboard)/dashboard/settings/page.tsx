@@ -27,6 +27,7 @@ export default async function SettingsPage() {
           username: user?.username || "",
           name: user?.name || "",
           bio: user?.bio || "",
+          image: user?.image || null,
         }}
       />
     </div>

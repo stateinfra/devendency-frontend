@@ -46,6 +46,7 @@ export const RATE_LIMITS = {
   toggleFollow: { limit: 30, windowMs: 60 * 1000 },           // 30/min
   upload:       { limit: 20, windowMs: 60 * 60 * 1000 },      // 20/hr
   updateProfile:{ limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
+  updateAvatar: { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
 } as const;
 
 export function checkRateLimit(
