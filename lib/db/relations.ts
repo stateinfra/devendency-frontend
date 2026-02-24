@@ -9,6 +9,7 @@ import {
   comments,
   follows,
   likes,
+  series,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -19,6 +20,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   likes: many(likes),
   followers: many(follows, { relationName: "following" }),
   following: many(follows, { relationName: "followers" }),
+  series: many(series),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -34,6 +36,12 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   tags: many(postTags),
   comments: many(comments),
   likes: many(likes),
+  series: one(series, { fields: [posts.seriesId], references: [series.id] }),
+}));
+
+export const seriesRelations = relations(series, ({ one, many }) => ({
+  author: one(users, { fields: [series.authorId], references: [users.id] }),
+  posts: many(posts),
 }));
 
 export const tagsRelations = relations(tags, ({ many }) => ({

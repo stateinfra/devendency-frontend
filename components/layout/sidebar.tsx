@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 const sidebarItems = [
+  { href: "/dashboard/series", label: "시리즈 관리", icon: "auto_stories" },
   { href: "/dashboard/settings", label: "설정", icon: "settings" },
 ];
 

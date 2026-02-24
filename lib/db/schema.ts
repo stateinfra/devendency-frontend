@@ -104,6 +104,8 @@ export const posts = pgTable(
     authorId: uuid("authorId")
       .notNull()
       .references(() => users.id),
+    seriesId: uuid("seriesId").references(() => series.id, { onDelete: "set null" }),
+    seriesOrder: integer("seriesOrder"),
     createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
   },
@@ -113,6 +115,7 @@ export const posts = pgTable(
       table.publishedAt,
     ),
     index("Post_authorId_idx").on(table.authorId),
+    index("Post_seriesId_idx").on(table.seriesId),
   ],
 );
 
@@ -173,6 +176,23 @@ export const follows = pgTable(
     createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.followerId, table.followingId] })],
+);
+
+// ── Series ──
+export const series = pgTable(
+  "Series",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    description: text("description"),
+    authorId: uuid("authorId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [index("Series_authorId_idx").on(table.authorId)],
 );
 
 // ── Like (composite PK) ──

@@ -8,6 +8,7 @@ import { PostActions } from "@/components/post/post-actions";
 import { LikeProvider } from "@/components/post/like-context";
 import { DeletePostButton } from "@/components/post/delete-post-button";
 import { TableOfContents } from "@/components/post/table-of-contents";
+import { SeriesNav } from "@/components/post/series-nav";
 import { CommentList } from "@/components/comment/comment-list";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
@@ -44,12 +45,22 @@ export default async function PostPage({ params }: Props) {
         columns: { id: true, username: true, name: true, image: true, bio: true },
       },
       tags: { with: { tag: true } },
+      series: true,
     },
   });
 
   if (!post || (!post.published && post.authorId !== session?.user?.id)) {
     notFound();
   }
+
+  // 시리즈가 있으면 같은 시리즈의 글 목록 조회
+  const seriesPosts = post.series
+    ? await db.query.posts.findMany({
+        where: and(eq(posts.seriesId, post.series.id), eq(posts.published, true)),
+        orderBy: asc(posts.seriesOrder),
+        columns: { id: true, title: true, slug: true, seriesOrder: true },
+      })
+    : [];
 
   const [[{ likeCount }], topComments, likedRow] = await Promise.all([
     db.select({ likeCount: count() }).from(likes).where(eq(likes.postId, post.id)),
@@ -76,17 +87,38 @@ export default async function PostPage({ params }: Props) {
   const liked = !!likedRow;
   const isAuthor = session?.user?.id === post.authorId;
 
+  const isDraft = !post.published;
+
   return (
     <LikeProvider postId={post.id} initialLiked={liked} initialLikeCount={likeCount}>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative">
         <aside className="hidden lg:block lg:col-span-3 relative">
           <div className="sticky top-28 space-y-8">
-            <PostActions variant="sidebar" />
+            {!isDraft && <PostActions variant="sidebar" />}
             <TableOfContents content={post.content} />
           </div>
         </aside>
 
         <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full">
+          {isDraft && (
+            <div className="mb-6 px-4 py-3 rounded-lg bg-yellow-900/20 border border-yellow-800/40 text-yellow-300 text-sm flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">edit_note</span>
+              이 글은 임시저장 상태입니다. 본인만 볼 수 있습니다.
+            </div>
+          )}
+
+          {/* 시리즈 네비게이션 */}
+          {post.series && seriesPosts.length > 0 && (
+            <div className="mb-8">
+              <SeriesNav
+                seriesName={post.series.name}
+                seriesSlug={post.series.slug}
+                posts={seriesPosts}
+                currentPostId={post.id}
+              />
+            </div>
+          )}
+
           {/* 표지 이미지 */}
           {post.coverImage && (
             <div className="mb-10 rounded-2xl overflow-hidden">
@@ -156,15 +188,31 @@ export default async function PostPage({ params }: Props) {
 
           <PostContent content={post.content} />
 
-          <div className="mt-16 pt-8 border-t border-white/[0.08]">
-            <div className="flex justify-center mb-8">
-              <PostActions variant="bottom" />
+          {/* 시리즈 하단 네비게이션 (시리즈가 있는 경우 반복) */}
+          {post.series && seriesPosts.length > 0 && (
+            <div className="mt-12">
+              <SeriesNav
+                seriesName={post.series.name}
+                seriesSlug={post.series.slug}
+                posts={seriesPosts}
+                currentPostId={post.id}
+              />
             </div>
-          </div>
+          )}
 
-          <div className="lg:hidden my-8">
-            <PostActions variant="inline" />
-          </div>
+          {!isDraft && (
+            <div className="mt-16 pt-8 border-t border-white/[0.08]">
+              <div className="flex justify-center mb-8">
+                <PostActions variant="bottom" />
+              </div>
+            </div>
+          )}
+
+          {!isDraft && (
+            <div className="lg:hidden my-8">
+              <PostActions variant="inline" />
+            </div>
+          )}
 
           <div className="mt-8">
             <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />

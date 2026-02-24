@@ -61,6 +61,14 @@ export function UserMenu() {
             내 프로필
           </Link>
           <Link
+            href="/dashboard/series"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-[#dcddde]/70 hover:bg-white/[0.06] transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">auto_stories</span>
+            시리즈 관리
+          </Link>
+          <Link
             href="/dashboard/settings"
             onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2 text-sm text-[#dcddde]/70 hover:bg-white/[0.06] transition-colors"

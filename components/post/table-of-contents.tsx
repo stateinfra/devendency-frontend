@@ -12,29 +12,37 @@ export function TableOfContents({ content }: { content: string }) {
   const [activeId, setActiveId] = useState<string>("");
   const [headings, setHeadings] = useState<TocItem[]>([]);
 
+  // DOM에서 실제 헤딩 요소를 읽어 ToC 생성
   useEffect(() => {
-    const items: TocItem[] = [];
-    const regex = /^(#{1,3})\s+(.+)$/gm;
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-      const level = match[1].length;
-      const text = match[2]
-        .replace(/\*\*|__/g, "")
-        .replace(/\*|_/g, "")
-        .replace(/`([^`]+)`/g, "$1")
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-        .trim();
-      const id = text
-        .toLowerCase()
-        .replace(/[^\w\s가-힣-]/g, "")
-        .replace(/\s+/g, "-");
-      items.push({ id, text, level });
-    }
-    setHeadings(items);
+    // rehype-slug가 DOM에 ID를 부여한 뒤 읽어야 하므로 약간 대기
+    const timer = setTimeout(() => {
+      const container = document.querySelector(".obsidian-md");
+      if (!container) return;
+
+      const elements = container.querySelectorAll("h1[id], h2[id], h3[id]");
+      const items: TocItem[] = [];
+      elements.forEach((el) => {
+        const level = parseInt(el.tagName[1], 10);
+        items.push({
+          id: el.id,
+          text: el.textContent?.trim() || "",
+          level,
+        });
+      });
+      setHeadings(items);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [content]);
 
   useEffect(() => {
     if (headings.length === 0) return;
+
+    const elements = headings
+      .map((h) => document.getElementById(h.id))
+      .filter(Boolean) as HTMLElement[];
+
+    if (elements.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -48,12 +56,34 @@ export function TableOfContents({ content }: { content: string }) {
       { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
     );
 
-    const elements = headings
-      .map((h) => document.getElementById(h.id))
-      .filter(Boolean);
+    elements.forEach((el) => observer.observe(el));
 
-    elements.forEach((el) => observer.observe(el!));
-    return () => observer.disconnect();
+    function handleScroll() {
+      const firstEl = elements[0];
+      const lastEl = elements[elements.length - 1];
+      if (!firstEl || !lastEl) return;
+
+      // 맨 위: 첫 번째 헤딩보다 위에 있으면 첫 번째 활성화
+      if (firstEl.getBoundingClientRect().top > window.innerHeight * 0.3) {
+        setActiveId(firstEl.id);
+        return;
+      }
+
+      // 맨 아래: 스크롤이 거의 바닥이면 마지막 헤딩 활성화
+      const scrollBottom = window.scrollY + window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+      if (docHeight - scrollBottom < 100) {
+        setActiveId(lastEl.id);
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [headings]);
 
   if (headings.length === 0) return null;

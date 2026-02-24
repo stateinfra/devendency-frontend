@@ -88,6 +88,7 @@ const imageUploadExtension = EditorView.domEventHandlers({
 });
 
 type Tag = { id: string; name: string };
+type SeriesOption = { id: string; name: string };
 
 type MarkdownEditorProps = {
   postId?: string;
@@ -98,8 +99,10 @@ type MarkdownEditorProps = {
     published: boolean;
     slug?: string;
     coverImage?: string | null;
+    seriesId?: string | null;
   };
   tags: Tag[];
+  userSeries?: SeriesOption[];
 };
 
 const editorTheme = EditorView.theme(
@@ -378,6 +381,7 @@ export function MarkdownEditor({
   postId,
   initialData,
   tags: availableTags,
+  userSeries = [],
 }: MarkdownEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -393,9 +397,14 @@ export function MarkdownEditor({
     initialData?.coverImage ?? null,
   );
   const [isCoverUploading, setIsCoverUploading] = useState(false);
+  const [selectedSeriesId, setSelectedSeriesId] = useState<string>(
+    initialData?.seriesId || "",
+  );
+  const [showSeriesDropdown, setShowSeriesDropdown] = useState(false);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const seriesDropdownRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
@@ -477,6 +486,12 @@ export function MarkdownEditor({
       ) {
         setShowSuggestions(false);
       }
+      if (
+        seriesDropdownRef.current &&
+        !seriesDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowSeriesDropdown(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -534,6 +549,7 @@ export function MarkdownEditor({
       selectedTags.forEach((name) => formData.append("tagNames", name));
       formData.set("published", "false");
       formData.set("coverImage", coverImage ?? "");
+      formData.set("seriesId", selectedSeriesId);
 
       const result = postId
         ? await updatePost(postId, formData)
@@ -563,6 +579,7 @@ export function MarkdownEditor({
     selectedTags.forEach((name) => formData.append("tagNames", name));
     formData.set("published", String(published));
     formData.set("coverImage", coverImage ?? "");
+    formData.set("seriesId", selectedSeriesId);
 
     startTransition(async () => {
       const result = postId
@@ -779,6 +796,52 @@ export function MarkdownEditor({
               </div>
             )}
           </div>
+
+          {/* Series selector */}
+          {userSeries.length > 0 && (
+            <div className="relative" ref={seriesDropdownRef}>
+              {selectedSeriesId ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-lg font-medium">
+                  <span className="material-symbols-outlined text-[14px]">auto_stories</span>
+                  {userSeries.find((s) => s.id === selectedSeriesId)?.name}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSeriesId("")}
+                    className="hover:text-red-400 transition-colors ml-0.5"
+                  >
+                    <span className="material-symbols-outlined text-[12px]">close</span>
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowSeriesDropdown((v) => !v)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-300 rounded-lg border border-dashed border-white/[0.08] hover:border-white/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[14px]">auto_stories</span>
+                  시리즈에 추가
+                </button>
+              )}
+              {showSeriesDropdown && !selectedSeriesId && (
+                <div className="absolute z-10 top-full left-0 mt-1 bg-[#2a2a2a] border border-white/[0.08] rounded-lg shadow-xl min-w-[200px] py-1">
+                  {userSeries.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedSeriesId(s.id);
+                        setShowSeriesDropdown(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[14px] text-slate-600">auto_stories</span>
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Divider */}
           <div className="border-t border-white/[0.04]" />

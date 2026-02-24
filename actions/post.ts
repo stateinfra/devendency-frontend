@@ -214,6 +214,8 @@ export async function createPost(formData: FormData) {
       }
     }
 
+    const seriesId = (formData.get("seriesId") as string) || null;
+
     const [newPost] = await tx
       .insert(posts)
       .values({
@@ -225,6 +227,7 @@ export async function createPost(formData: FormData) {
         published,
         publishedAt: published ? new Date() : null,
         authorId: session.user.id,
+        seriesId,
       })
       .returning();
 
@@ -292,6 +295,8 @@ export async function updatePost(postId: string, formData: FormData) {
 
   const wasPublished = post.published;
 
+  const seriesId = (formData.get("seriesId") as string) || null;
+
   await db.transaction(async (tx) => {
     await tx.delete(postTags).where(eq(postTags.postId, postId));
 
@@ -305,6 +310,7 @@ export async function updatePost(postId: string, formData: FormData) {
         published,
         publishedAt:
           published && !wasPublished ? new Date() : post.publishedAt,
+        seriesId,
         updatedAt: new Date(),
       })
       .where(eq(posts.id, postId));

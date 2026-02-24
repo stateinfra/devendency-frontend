@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { tags } from "@/lib/db/schema";
-import { asc } from "drizzle-orm";
+import { tags, series } from "@/lib/db/schema";
+import { asc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import type { Metadata } from "next";
@@ -14,7 +14,14 @@ export default async function NewPostPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const allTags = await db.query.tags.findMany({ orderBy: asc(tags.name) });
+  const [allTags, userSeries] = await Promise.all([
+    db.query.tags.findMany({ orderBy: asc(tags.name) }),
+    db.query.series.findMany({
+      where: eq(series.authorId, session.user.id),
+      orderBy: asc(series.createdAt),
+      columns: { id: true, name: true },
+    }),
+  ]);
 
-  return <MarkdownEditor tags={allTags} />;
+  return <MarkdownEditor tags={allTags} userSeries={userSeries} />;
 }

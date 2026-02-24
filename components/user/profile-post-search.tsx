@@ -6,9 +6,11 @@ import { useState } from "react";
 export function ProfilePostSearch({
   initialQuery,
   username,
+  tab,
 }: {
   initialQuery?: string;
   username: string;
+  tab?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(initialQuery || "");
@@ -16,11 +18,11 @@ export function ProfilePostSearch({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = query.trim();
-    if (trimmed) {
-      router.push(`/users/@${username}?q=${encodeURIComponent(trimmed)}`);
-    } else {
-      router.push(`/users/@${username}`);
-    }
+    const params = new URLSearchParams();
+    if (trimmed) params.set("q", trimmed);
+    if (tab && tab !== "posts") params.set("tab", tab);
+    const qs = params.toString();
+    router.push(`/users/@${username}${qs ? `?${qs}` : ""}`);
   }
 
   return (
