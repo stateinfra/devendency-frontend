@@ -214,9 +214,11 @@ export default async function PostPage({ params }: Props) {
             </div>
           )}
 
-          <div className="mt-8">
-            <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
-          </div>
+          {!isDraft && (
+            <div className="mt-8">
+              <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
+            </div>
+          )}
         </article>
       </div>
     </LikeProvider>

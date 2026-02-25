@@ -33,6 +33,7 @@ export async function createComment(postId: string, formData: FormData) {
     where: eq(posts.id, postId),
   });
   if (!post) return { error: "글을 찾을 수 없습니다" };
+  if (!post.published) return { error: "임시저장 글에는 댓글을 작성할 수 없습니다" };
 
   await db.insert(comments).values({
     content: parsed.data.content,

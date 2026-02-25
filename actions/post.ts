@@ -244,7 +244,7 @@ export async function createPost(formData: FormData) {
   });
 
   revalidatePath("/");
-  return { success: true, slug: post.slug };
+  return { success: true, slug: post.slug, postId: post.id };
 }
 
 export async function updatePost(postId: string, formData: FormData) {
@@ -327,7 +327,7 @@ export async function updatePost(postId: string, formData: FormData) {
 
   revalidatePath("/");
   revalidatePath(`/posts/${post.slug}`);
-  return { success: true };
+  return { success: true, slug: post.slug, postId: post.id };
 }
 
 export async function deletePost(postId: string) {
@@ -358,6 +358,11 @@ export async function toggleLike(postId: string) {
   const rl = checkRateLimit("toggleLike", session.user.id);
   if (!rl.success)
     return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
+  const post = await db.query.posts.findFirst({
+    where: eq(posts.id, postId),
+  });
+  if (!post || !post.published) return { error: "글을 찾을 수 없습니다" };
 
   const existing = await db.query.likes.findFirst({
     where: and(

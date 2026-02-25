@@ -386,6 +386,7 @@ export function MarkdownEditor({
 }: MarkdownEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [currentPostId, setCurrentPostId] = useState<string | undefined>(postId);
   const [title, setTitle] = useState(initialData?.title || "");
   const [content, setContent] = useState(initialData?.content || "");
   const [selectedTags, setSelectedTags] = useState<string[]>(
@@ -550,50 +551,196 @@ export function MarkdownEditor({
 
   // ── Auto-save (debounce 3s after last edit) ──
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const savedRef = useRef({ title: initialData?.title || "", content: initialData?.content || "" });
-  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCount = useRef(0);
+  const savedRef = useRef({
+    title: initialData?.title || "",
+    content: initialData?.content || "",
+    tags: initialData?.tagNames || [] as string[],
+    coverImage: initialData?.coverImage ?? null as string | null,
+    seriesId: initialData?.seriesId || "" as string,
+  });
+  const [autoSaveStatus, setAutoSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  const hasUnsavedChanges = useCallback(() => {
+    const s = savedRef.current;
+    return (
+      title !== s.title ||
+      content !== s.content ||
+      JSON.stringify(selectedTags) !== JSON.stringify(s.tags) ||
+      (coverImage ?? null) !== s.coverImage ||
+      selectedSeriesId !== s.seriesId
+    );
+  }, [title, content, selectedTags, coverImage, selectedSeriesId]);
+
+  // localStorage backup key
+  const backupKey = currentPostId ? `draft-backup-${currentPostId}` : "draft-backup-new";
+
+  const performAutoSave = useCallback(async () => {
+    if (!title || !content) return;
+
+    // Save to localStorage as backup before server call
+    try {
+      localStorage.setItem(
+        backupKey,
+        JSON.stringify({
+          title,
+          content,
+          tags: selectedTags,
+          coverImage,
+          seriesId: selectedSeriesId,
+          savedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // localStorage full or unavailable — ignore
+    }
+
+    setAutoSaveStatus("saving");
+
+    const formData = new FormData();
+    formData.set("title", title);
+    formData.set("content", content);
+    formData.set("excerpt", "");
+    selectedTags.forEach((name) => formData.append("tagNames", name));
+    // 이미 발행된 글은 발행 상태 유지, 새 글 자동저장은 임시저장으로
+    const isPublished = initialData?.published ?? false;
+    formData.set("published", String(isPublished));
+    formData.set("coverImage", coverImage ?? "");
+    formData.set("seriesId", selectedSeriesId);
+
+    const result = currentPostId
+      ? await updatePost(currentPostId, formData)
+      : await createPost(formData);
+
+    if (!result.error) {
+      // First create → capture postId for future updates
+      if (!currentPostId && "postId" in result && result.postId) {
+        setCurrentPostId(result.postId);
+        // Migrate localStorage key from "new" to actual postId
+        try {
+          const backup = localStorage.getItem("draft-backup-new");
+          if (backup) {
+            localStorage.setItem(`draft-backup-${result.postId}`, backup);
+            localStorage.removeItem("draft-backup-new");
+          }
+        } catch { /* ignore */ }
+      }
+      savedRef.current = {
+        title,
+        content,
+        tags: [...selectedTags],
+        coverImage: coverImage ?? null,
+        seriesId: selectedSeriesId,
+      };
+      retryCount.current = 0;
+      setAutoSaveStatus("saved");
+      setLastSavedAt(new Date());
+
+      // Clear localStorage backup on successful server save
+      try {
+        const key = currentPostId
+          ? `draft-backup-${currentPostId}`
+          : "postId" in result && result.postId
+            ? `draft-backup-${result.postId}`
+            : "draft-backup-new";
+        localStorage.removeItem(key);
+      } catch { /* ignore */ }
+    } else {
+      setAutoSaveStatus("error");
+      // Retry up to 3 times with 5s delay
+      if (retryCount.current < 3) {
+        retryCount.current++;
+        retryTimer.current = setTimeout(() => {
+          performAutoSave();
+        }, 5000);
+      }
+    }
+  }, [title, content, selectedTags, coverImage, selectedSeriesId, currentPostId, backupKey]);
 
   useEffect(() => {
     if (!title && !content) return;
-    // Skip if nothing changed
-    if (title === savedRef.current.title && content === savedRef.current.content) return;
+    if (!hasUnsavedChanges()) return;
 
     setAutoSaveStatus("idle");
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
 
-    autoSaveTimer.current = setTimeout(async () => {
-      if (!title || !content) return;
-      setAutoSaveStatus("saving");
-
-      const formData = new FormData();
-      formData.set("title", title);
-      formData.set("content", content);
-      formData.set("excerpt", "");
-      selectedTags.forEach((name) => formData.append("tagNames", name));
-      formData.set("published", "false");
-      formData.set("coverImage", coverImage ?? "");
-      formData.set("seriesId", selectedSeriesId);
-
-      const result = postId
-        ? await updatePost(postId, formData)
-        : await createPost(formData);
-
-      if (!result.error) {
-        savedRef.current = { title, content };
-        setAutoSaveStatus("saved");
-      } else {
-        setAutoSaveStatus("idle");
-      }
+    autoSaveTimer.current = setTimeout(() => {
+      retryCount.current = 0;
+      performAutoSave();
     }, 3000);
 
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [title, content, selectedTags, postId]);
+  }, [title, content, selectedTags, coverImage, selectedSeriesId, hasUnsavedChanges, performAutoSave]);
+
+  // Cleanup retry timer on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+    };
+  }, []);
+
+  // ── Beforeunload protection ──
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges()) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
+
+  // ── localStorage backup restore on mount ──
+  useEffect(() => {
+    try {
+      const key = currentPostId ? `draft-backup-${currentPostId}` : "draft-backup-new";
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const backup = JSON.parse(raw) as {
+        title: string;
+        content: string;
+        tags: string[];
+        coverImage: string | null;
+        seriesId: string;
+        savedAt: string;
+      };
+      // Only offer restore if backup has content and differs from initial data
+      const hasBackupContent = backup.title || backup.content;
+      const differsFromInitial =
+        backup.title !== (initialData?.title || "") ||
+        backup.content !== (initialData?.content || "");
+      if (hasBackupContent && differsFromInitial) {
+        toast("저장되지 않은 이전 작업이 있습니다. 복원하시겠습니까?", {
+          action: {
+            label: "복원",
+            onClick: () => {
+              setTitle(backup.title);
+              setContent(backup.content);
+              setSelectedTags(backup.tags || []);
+              if (backup.coverImage !== undefined) setCoverImage(backup.coverImage);
+              if (backup.seriesId !== undefined) setSelectedSeriesId(backup.seriesId);
+              toast.success("이전 작업이 복원되었습니다");
+            },
+          },
+          duration: 10000,
+        });
+      }
+    } catch {
+      // Corrupted backup — ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Submit ──
   function handleSubmit(published: boolean) {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    if (retryTimer.current) clearTimeout(retryTimer.current);
 
     const formData = new FormData();
     formData.set("title", title);
@@ -605,13 +752,29 @@ export function MarkdownEditor({
     formData.set("seriesId", selectedSeriesId);
 
     startTransition(async () => {
-      const result = postId
-        ? await updatePost(postId, formData)
+      const result = currentPostId
+        ? await updatePost(currentPostId, formData)
         : await createPost(formData);
 
       if (result.error) {
         toast.error(result.error);
       } else {
+        // Mark as saved to prevent beforeunload warning
+        savedRef.current = {
+          title,
+          content,
+          tags: [...selectedTags],
+          coverImage: coverImage ?? null,
+          seriesId: selectedSeriesId,
+        };
+        // Clean up localStorage backup
+        try {
+          const key = currentPostId
+            ? `draft-backup-${currentPostId}`
+            : "draft-backup-new";
+          localStorage.removeItem(key);
+        } catch { /* ignore */ }
+
         toast.success(published ? "글이 발행되었습니다" : "임시저장되었습니다");
         const slug = "slug" in result ? result.slug : initialData?.slug;
         router.push(published && slug ? `/posts/${slug}` : "/");
@@ -674,8 +837,15 @@ export function MarkdownEditor({
           {autoSaveStatus === "saving" && (
             <span className="text-[11px] text-slate-600">저장 중...</span>
           )}
-          {autoSaveStatus === "saved" && (
-            <span className="text-[11px] text-slate-600">자동 저장됨</span>
+          {autoSaveStatus === "saved" && lastSavedAt && (
+            <span className="text-[11px] text-slate-600">
+              자동 저장됨 ({lastSavedAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })})
+            </span>
+          )}
+          {autoSaveStatus === "error" && (
+            <span className="text-[11px] text-red-400">
+              저장 실패{retryCount.current < 3 ? " · 재시도 중..." : ""}
+            </span>
           )}
           <button
             type="button"
