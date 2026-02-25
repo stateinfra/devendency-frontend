@@ -12,6 +12,7 @@ import { StateField } from "@codemirror/state";
 import { tags } from "@lezer/highlight";
 import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
+import { ImageCropModal } from "./cover-image-crop-modal";
 
 // ── Image upload helper ──
 async function uploadImageFile(file: File): Promise<string> {
@@ -401,6 +402,8 @@ export function MarkdownEditor({
     initialData?.seriesId || "",
   );
   const [showSeriesDropdown, setShowSeriesDropdown] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -409,19 +412,39 @@ export function MarkdownEditor({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Cover image upload ──
-  async function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // ── Cover image crop & upload ──
+  function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
+    const objectUrl = URL.createObjectURL(file);
+    setCropImageSrc(objectUrl);
+    setCropModalOpen(true);
+  }
+
+  const handleCropConfirm = useCallback(async (blob: Blob) => {
+    setCropModalOpen(false);
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
+    }
     setIsCoverUploading(true);
     try {
+      const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
       const url = await uploadImageFile(file);
       setCoverImage(url);
     } catch {
       toast.error("표지 이미지 업로드에 실패했습니다");
     } finally {
       setIsCoverUploading(false);
+    }
+  }, [cropImageSrc]);
+
+  function handleCropClose() {
+    setCropModalOpen(false);
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
     }
   }
 
@@ -718,6 +741,7 @@ export function MarkdownEditor({
                   <>
                     <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
                     <span className="text-xs">표지 이미지 추가</span>
+                    <span className="text-[10px] text-slate-700">권장 1200×630</span>
                   </>
                 )}
               </button>
@@ -868,6 +892,13 @@ export function MarkdownEditor({
           />
         </div>
       </div>
+
+      <ImageCropModal
+        open={cropModalOpen}
+        imageSrc={cropImageSrc}
+        onClose={handleCropClose}
+        onConfirm={handleCropConfirm}
+      />
     </div>
   );
 }

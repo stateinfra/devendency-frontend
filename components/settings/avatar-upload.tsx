@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { updateAvatar } from "@/actions/profile";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { ImageCropModal } from "@/components/editor/cover-image-crop-modal";
 
 type AvatarUploadProps = {
   currentImage: string | null;
@@ -18,10 +19,13 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [isPending, startTransition] = useTransition();
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
 
     // 클라이언트 사이드 미리 검증
     if (file.size > 5 * 1024 * 1024) {
@@ -33,27 +37,44 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
       return;
     }
 
-    // 즉시 미리보기
     const objectUrl = URL.createObjectURL(file);
+    setCropImageSrc(objectUrl);
+    setCropModalOpen(true);
+  }
+
+  const handleCropConfirm = useCallback((blob: Blob) => {
+    setCropModalOpen(false);
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
+    }
+
+    const croppedFile = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+    const objectUrl = URL.createObjectURL(croppedFile);
     setPreview(objectUrl);
 
     const formData = new FormData();
-    formData.set("avatar", file);
+    formData.set("avatar", croppedFile);
 
     startTransition(async () => {
       const result = await updateAvatar(formData);
       if (result.error) {
         toast.error(result.error);
-        setPreview(currentImage); // 원복
+        setPreview(currentImage);
       } else {
         toast.success("프로필 사진이 변경되었습니다");
-        // JWT 세션 갱신 → 헤더 아바타에 즉시 반영
         await updateSession();
         router.refresh();
       }
-      // 같은 파일 재선택 가능하도록 초기화
-      if (inputRef.current) inputRef.current.value = "";
     });
+  }, [cropImageSrc, currentImage, router, updateSession]);
+
+  function handleCropClose() {
+    setCropModalOpen(false);
+    if (cropImageSrc) {
+      URL.revokeObjectURL(cropImageSrc);
+      setCropImageSrc(null);
+    }
   }
 
   const initials = username
@@ -121,6 +142,18 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
         accept="image/jpeg,image/png,image/webp,image/gif"
         className="hidden"
         onChange={handleFileChange}
+      />
+
+      <ImageCropModal
+        open={cropModalOpen}
+        imageSrc={cropImageSrc}
+        onClose={handleCropClose}
+        onConfirm={handleCropConfirm}
+        aspect={1}
+        title="프로필 사진 자르기"
+        sizeLabel="정사각형"
+        outputSize={{ width: 400, height: 400 }}
+        cropShape="round"
       />
     </div>
   );
