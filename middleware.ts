@@ -21,13 +21,14 @@ const SKIP_PREFIXES = ["/_next", "/api", "/favicon.ico", "/robots.txt", "/sitema
 // 커스텀 도메인에서도 그대로 통과시킬 기존 앱 경로
 const PASSTHROUGH_PREFIXES = ["/posts", "/tags", "/search", "/login", "/register", "/feed.xml"];
 
-function addDomainHeaders(
-  requestHeaders: Headers,
+function setDomainCookies(
+  response: NextResponse,
   domain: string,
   logo: string | null,
 ) {
-  requestHeaders.set("x-custom-domain", domain);
-  if (logo) requestHeaders.set("x-custom-logo", logo);
+  response.cookies.set("x-custom-domain", domain, { path: "/", httpOnly: true });
+  response.cookies.set("x-custom-logo", logo || "", { path: "/", httpOnly: true });
+  return response;
 }
 
 export async function middleware(request: NextRequest) {
@@ -69,19 +70,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // request header에 커스텀 도메인 정보 주입
-  const requestHeaders = new Headers(request.headers);
-  addDomainHeaders(requestHeaders, hostname, domainInfo.logo);
-
-  // 기존 앱 경로는 rewrite 없이 통과 (헤더만 추가)
+  // 기존 앱 경로는 rewrite 없이 통과 (쿠키만 추가)
   if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next({ request: { headers: requestHeaders } });
+    const response = NextResponse.next();
+    return setDomainCookies(response, hostname, domainInfo.logo);
   }
 
   // 루트는 프로필 페이지로 rewrite
   const url = request.nextUrl.clone();
   url.pathname = pathname === "/" ? `/users/@${domainInfo.username}` : pathname;
-  return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+  const response = NextResponse.rewrite(url);
+  return setDomainCookies(response, hostname, domainInfo.logo);
 }
 
 export const config = {
