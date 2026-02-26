@@ -3,11 +3,22 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   title: {
     default: "디벤던시",
     template: "%s | 디벤던시",
   },
   description: "개발자들의 기술 블로그",
+  openGraph: {
+    type: "website",
+    siteName: "디벤던시",
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

@@ -11,6 +11,7 @@ import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
 import { CommentList } from "@/components/comment/comment-list";
 import { formatDate } from "@/lib/utils";
+import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -22,15 +23,47 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await db.query.posts.findFirst({
     where: eq(posts.slug, slug),
-    columns: { title: true, excerpt: true, coverImage: true },
+    columns: {
+      title: true,
+      excerpt: true,
+      coverImage: true,
+      publishedAt: true,
+      updatedAt: true,
+    },
+    with: {
+      author: { columns: { name: true } },
+      tags: { with: { tag: { columns: { name: true } } } },
+    },
   });
   if (!post) return { title: "글을 찾을 수 없습니다" };
+
+  const url = `${SITE_CONFIG.url}/posts/${slug}`;
+
   return {
     title: post.title,
     description: post.excerpt || undefined,
-    openGraph: post.coverImage
-      ? { images: [{ url: post.coverImage }] }
-      : undefined,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || undefined,
+      url,
+      type: "article",
+      publishedTime: (post.publishedAt || post.updatedAt)?.toISOString(),
+      modifiedTime: post.updatedAt?.toISOString(),
+      authors: post.author?.name ? [post.author.name] : undefined,
+      tags: post.tags?.map(({ tag }) => tag.name),
+      ...(post.coverImage
+        ? { images: [{ url: post.coverImage, alt: post.title }] }
+        : {}),
+    },
+    twitter: {
+      card: post.coverImage ? "summary_large_image" : "summary",
+      title: post.title,
+      description: post.excerpt || undefined,
+      ...(post.coverImage ? { images: [post.coverImage] } : {}),
+    },
   };
 }
 
@@ -89,8 +122,39 @@ export default async function PostPage({ params }: Props) {
 
   const isDraft = !post.published;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    ...(post.coverImage ? { image: post.coverImage } : {}),
+    datePublished: (post.publishedAt || post.createdAt).toISOString(),
+    dateModified: (post.updatedAt || post.createdAt).toISOString(),
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+      url: `${SITE_CONFIG.url}/users/@${post.author.username}`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_CONFIG.name,
+      url: SITE_CONFIG.url,
+    },
+    description: post.excerpt || undefined,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_CONFIG.url}/posts/${slug}`,
+    },
+    ...(post.tags.length > 0
+      ? { keywords: post.tags.map(({ tag }) => tag.name).join(", ") }
+      : {}),
+  };
+
   return (
     <LikeProvider postId={post.id} initialLiked={liked} initialLikeCount={likeCount}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative">
         <aside className="hidden lg:block lg:col-span-3 relative">
           <div className="sticky top-28 space-y-8">
