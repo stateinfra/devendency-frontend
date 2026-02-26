@@ -15,6 +15,9 @@ function isPlatformHost(host: string): boolean {
 
 const SKIP_PREFIXES = ["/_next", "/api", "/favicon.ico", "/robots.txt", "/sitemap.xml"];
 
+// 커스텀 도메인에서도 그대로 통과시킬 기존 앱 경로
+const PASSTHROUGH_PREFIXES = ["/posts", "/tags", "/search", "/login", "/register", "/feed.xml"];
+
 export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
   const hostname = host.split(":")[0];
@@ -30,12 +33,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 기존 앱 경로는 rewrite 없이 통과
+  if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
   // 캐시 확인
   const now = Date.now();
   const cached = cache.get(hostname);
   if (cached && cached.expiresAt > now) {
     const url = request.nextUrl.clone();
-    url.pathname = `/users/@${cached.username}${pathname === "/" ? "" : pathname}`;
+    url.pathname = pathname === "/" ? `/users/@${cached.username}` : pathname;
     return NextResponse.rewrite(url);
   }
 
@@ -55,7 +63,7 @@ export async function middleware(request: NextRequest) {
     cache.set(hostname, { username, expiresAt: now + CACHE_TTL });
 
     const url = request.nextUrl.clone();
-    url.pathname = `/users/@${username}${pathname === "/" ? "" : pathname}`;
+    url.pathname = pathname === "/" ? `/users/@${username}` : pathname;
     return NextResponse.rewrite(url);
   } catch {
     return NextResponse.next();
