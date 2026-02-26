@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { users, posts, likes, follows, series } from "@/lib/db/schema";
@@ -35,6 +36,8 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const { username } = await params;
   const { q, tab } = await searchParams;
   const session = await auth();
+  const cookieStore = await cookies();
+  const isCustomDomain = !!cookieStore.get("x-custom-domain")?.value;
 
   const user = await db.query.users.findFirst({
     where: eq(users.username, cleanUsername(username)),
@@ -139,66 +142,70 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               <h2 className="text-3xl font-bold text-white">{user.name}</h2>
               <span className="text-slate-500 text-sm">@{user.username}</span>
             </div>
-            {!isOwnProfile && session?.user && (
+            {!isCustomDomain && !isOwnProfile && session?.user && (
               <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
             )}
           </div>
           {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
-          <FollowStats
-            username={user.username!}
-            postCount={postCount}
-            followerCount={followerCount}
-            followingCount={followingCount}
-            totalLikes={totalLikes}
-          />
+          {!isCustomDomain && (
+            <FollowStats
+              username={user.username!}
+              postCount={postCount}
+              followerCount={followerCount}
+              followingCount={followingCount}
+              totalLikes={totalLikes}
+            />
+          )}
         </div>
       </div>
 
-      {/* 탭 */}
-      <div className="border-b border-white/[0.08] mb-8">
-        <div className="flex items-center justify-between pb-0">
-          <div className="flex items-center gap-0">
-            <Link
-              href={`/users/@${user.username}`}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "posts"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              포스트
-            </Link>
-            <Link
-              href={`/users/@${user.username}?tab=series`}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "series"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              시리즈
-            </Link>
-            {isOwnProfile && (
+      {/* 탭 — 커스텀 도메인에서는 숨김 */}
+      {!isCustomDomain && (
+        <div className="border-b border-white/[0.08] mb-8">
+          <div className="flex items-center justify-between pb-0">
+            <div className="flex items-center gap-0">
               <Link
-                href={`/users/@${user.username}?tab=drafts`}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
-                  activeTab === "drafts"
+                href={`/users/@${user.username}`}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "posts"
                     ? "border-primary text-primary"
                     : "border-transparent text-slate-500 hover:text-slate-300"
                 }`}
               >
-                임시저장
-                {draftCount > 0 && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10">{draftCount}</span>
-                )}
+                포스트
               </Link>
+              <Link
+                href={`/users/@${user.username}?tab=series`}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "series"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                시리즈
+              </Link>
+              {isOwnProfile && (
+                <Link
+                  href={`/users/@${user.username}?tab=drafts`}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
+                    activeTab === "drafts"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  임시저장
+                  {draftCount > 0 && (
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10">{draftCount}</span>
+                  )}
+                </Link>
+              )}
+            </div>
+            {activeTab !== "series" && (
+              <ProfilePostSearch initialQuery={q} username={user.username!} tab={activeTab} />
             )}
           </div>
-          {activeTab !== "series" && (
-            <ProfilePostSearch initialQuery={q} username={user.username!} tab={activeTab} />
-          )}
         </div>
-      </div>
+      )}
 
       {/* 시리즈 탭 */}
       {activeTab === "series" ? (

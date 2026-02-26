@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { posts, likes, comments } from "@/lib/db/schema";
@@ -70,6 +71,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostPage({ params }: Props) {
   const { slug } = await params;
   const session = await auth();
+  const cookieStore = await cookies();
+  const isCustomDomain = !!cookieStore.get("x-custom-domain")?.value;
 
   const post = await db.query.posts.findFirst({
     where: eq(posts.slug, slug),
@@ -280,7 +283,7 @@ export default async function PostPage({ params }: Props) {
 
           {!isDraft && (
             <div className="mt-8">
-              <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
+              <CommentList postId={post.id} postSlug={slug} comments={topComments} currentUserId={session?.user?.id} isCustomDomain={isCustomDomain} />
             </div>
           )}
         </article>
