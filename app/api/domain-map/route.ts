@@ -16,7 +16,7 @@ export async function GET(request: Request) {
       eq(users.customDomain, domain),
       eq(users.domainVerified, true),
     ),
-    columns: { username: true },
+    columns: { username: true, customLogo: true },
   });
 
   if (!user?.username) {
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(
-    { username: user.username },
+    { username: user.username, logo: user.customLogo ?? null },
     {
       headers: {
         "Cache-Control": "s-maxage=300, stale-while-revalidate=3600",

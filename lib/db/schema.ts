@@ -34,6 +34,7 @@ export const users = pgTable("User", {
   bio: text("bio"),
   customDomain: text("customDomain").unique(),
   domainVerified: boolean("domainVerified").default(false).notNull(),
+  customLogo: text("customLogo"),
   deletionScheduledAt: timestamp("deletionScheduledAt", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),

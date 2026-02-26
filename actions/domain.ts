@@ -5,6 +5,8 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { domainSchema } from "@/lib/validations/domain";
+import { uploadImage } from "@/lib/s3";
+import crypto from "crypto";
 import {
   addDomainToProject,
   removeDomainFromProject,
@@ -115,8 +117,40 @@ export async function removeCustomDomain() {
 
   await db
     .update(users)
-    .set({ customDomain: null, domainVerified: false, updatedAt: new Date() })
+    .set({ customDomain: null, domainVerified: false, customLogo: null, updatedAt: new Date() })
     .where(eq(users.id, session.user.id));
 
   return { success: true };
+}
+
+const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2MB
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+
+export async function updateCustomLogo(formData: FormData) {
+  const { error, session } = await requireSuperAdmin();
+  if (error || !session) return { error: error! };
+
+  const file = formData.get("logo") as File | null;
+  if (!file || file.size === 0) return { error: "파일을 선택해주세요" };
+  if (file.size > LOGO_MAX_BYTES) return { error: "파일 크기는 2MB 이하여야 합니다" };
+  if (!ALLOWED_LOGO_TYPES.includes(file.type))
+    return { error: "PNG, JPG, WebP, SVG 형식만 지원합니다" };
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const ext = file.type === "image/svg+xml" ? "svg" : file.type.split("/")[1];
+  const filename = `logos/${session.user.id}/${crypto.randomUUID()}.${ext}`;
+
+  let url: string;
+  try {
+    url = await uploadImage(buffer, filename, file.type);
+  } catch {
+    return { error: "이미지 업로드에 실패했습니다" };
+  }
+
+  await db
+    .update(users)
+    .set({ customLogo: url, updatedAt: new Date() })
+    .where(eq(users.id, session.user.id));
+
+  return { success: true, logo: url };
 }

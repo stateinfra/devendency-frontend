@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { username: true, name: true, bio: true, image: true, password: true, deletionScheduledAt: true, customDomain: true, domainVerified: true, role: true },
+    columns: { username: true, name: true, bio: true, image: true, password: true, deletionScheduledAt: true, customDomain: true, domainVerified: true, customLogo: true, role: true },
   });
 
   return (
@@ -36,6 +36,7 @@ export default async function SettingsPage() {
         <CustomDomainSection
           currentDomain={user.customDomain ?? null}
           domainVerified={user.domainVerified ?? false}
+          customLogo={user.customLogo ?? null}
         />
       )}
       <DeleteAccountSection

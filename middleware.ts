@@ -2,8 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PLATFORM_HOSTS = ["devendency.com", "www.devendency.com"];
 
-// In-memory cache: domain → { username, expiresAt }
-const cache = new Map<string, { username: string; expiresAt: number }>();
+// In-memory cache: domain → { username, logo, expiresAt }
+const cache = new Map<
+  string,
+  { username: string; logo: string | null; expiresAt: number }
+>();
 const CACHE_TTL = 5 * 60 * 1000; // 5분
 
 function isPlatformHost(host: string): boolean {
@@ -17,6 +20,15 @@ const SKIP_PREFIXES = ["/_next", "/api", "/favicon.ico", "/robots.txt", "/sitema
 
 // 커스텀 도메인에서도 그대로 통과시킬 기존 앱 경로
 const PASSTHROUGH_PREFIXES = ["/posts", "/tags", "/search", "/login", "/register", "/feed.xml"];
+
+function addDomainHeaders(
+  requestHeaders: Headers,
+  domain: string,
+  logo: string | null,
+) {
+  requestHeaders.set("x-custom-domain", domain);
+  if (logo) requestHeaders.set("x-custom-logo", logo);
+}
 
 export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
@@ -33,41 +45,43 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 기존 앱 경로는 rewrite 없이 통과
-  if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
-  // 캐시 확인
+  // 도메인 정보 조회 (캐시 또는 API)
   const now = Date.now();
-  const cached = cache.get(hostname);
-  if (cached && cached.expiresAt > now) {
-    const url = request.nextUrl.clone();
-    url.pathname = pathname === "/" ? `/users/@${cached.username}` : pathname;
-    return NextResponse.rewrite(url);
-  }
+  let domainInfo = cache.get(hostname);
 
-  // API로 도메인 → 유저 조회
-  try {
-    const apiUrl = new URL("/api/domain-map", request.url);
-    apiUrl.searchParams.set("domain", hostname);
+  if (!domainInfo || domainInfo.expiresAt <= now) {
+    try {
+      const apiUrl = new URL("/api/domain-map", request.url);
+      apiUrl.searchParams.set("domain", hostname);
 
-    const res = await fetch(apiUrl.toString());
-    if (!res.ok) {
+      const res = await fetch(apiUrl.toString());
+      if (!res.ok) return NextResponse.next();
+
+      const { username, logo } = (await res.json()) as {
+        username: string;
+        logo: string | null;
+      };
+
+      domainInfo = { username, logo, expiresAt: now + CACHE_TTL };
+      cache.set(hostname, domainInfo);
+    } catch {
       return NextResponse.next();
     }
-
-    const { username } = (await res.json()) as { username: string };
-
-    // 캐시 저장
-    cache.set(hostname, { username, expiresAt: now + CACHE_TTL });
-
-    const url = request.nextUrl.clone();
-    url.pathname = pathname === "/" ? `/users/@${username}` : pathname;
-    return NextResponse.rewrite(url);
-  } catch {
-    return NextResponse.next();
   }
+
+  // request header에 커스텀 도메인 정보 주입
+  const requestHeaders = new Headers(request.headers);
+  addDomainHeaders(requestHeaders, hostname, domainInfo.logo);
+
+  // 기존 앱 경로는 rewrite 없이 통과 (헤더만 추가)
+  if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
+
+  // 루트는 프로필 페이지로 rewrite
+  const url = request.nextUrl.clone();
+  url.pathname = pathname === "/" ? `/users/@${domainInfo.username}` : pathname;
+  return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
 }
 
 export const config = {

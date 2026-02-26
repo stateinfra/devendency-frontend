@@ -1,26 +1,31 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   registerCustomDomain,
   verifyCustomDomain,
   removeCustomDomain,
+  updateCustomLogo,
 } from "@/actions/domain";
 import { toast } from "sonner";
 
 type CustomDomainSectionProps = {
   currentDomain: string | null;
   domainVerified: boolean;
+  customLogo: string | null;
 };
 
 export function CustomDomainSection({
   currentDomain,
   domainVerified,
+  customLogo,
 }: CustomDomainSectionProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [domain, setDomain] = useState("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +69,27 @@ export function CustomDomainSection({
     });
   }
 
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.set("logo", file);
+
+    startTransition(async () => {
+      const result = await updateCustomLogo(formData);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("로고가 업데이트되었습니다.");
+        router.refresh();
+      }
+    });
+
+    // input 초기화
+    e.target.value = "";
+  }
+
   // 인증 완료 상태
   if (currentDomain && domainVerified) {
     return (
@@ -76,6 +102,43 @@ export function CustomDomainSection({
           </span>
           <span className="text-sm text-[#dcddde]">{currentDomain}</span>
         </div>
+
+        {/* 로고 설정 */}
+        <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] mb-4">
+          <p className="text-sm text-[#dcddde]/80 mb-3">
+            커스텀 도메인 헤더에 표시할 로고
+          </p>
+          <div className="flex items-center gap-3">
+            {customLogo ? (
+              <Image
+                src={customLogo}
+                alt="Custom logo"
+                width={40}
+                height={40}
+                className="size-10 rounded object-contain border border-white/[0.06]"
+              />
+            ) : (
+              <div className="size-10 rounded border border-dashed border-white/[0.12] flex items-center justify-center text-[#dcddde]/30">
+                <span className="material-symbols-outlined text-[20px]">image</span>
+              </div>
+            )}
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              onChange={handleLogoChange}
+              className="hidden"
+            />
+            <button
+              onClick={() => logoInputRef.current?.click()}
+              disabled={isPending}
+              className="h-9 px-4 rounded-lg border border-white/[0.06] text-sm text-[#dcddde]/70 hover:bg-white/[0.04] transition-colors disabled:opacity-50"
+            >
+              {isPending ? "업로드 중..." : customLogo ? "로고 변경" : "로고 업로드"}
+            </button>
+          </div>
+        </div>
+
         <button
           onClick={handleRemove}
           disabled={isPending}
