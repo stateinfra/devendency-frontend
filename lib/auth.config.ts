@@ -54,12 +54,13 @@ export const authConfig: NextAuthConfig = {
       if (token.id) {
         const dbUser = await db.query.users.findFirst({
           where: eq(users.id, token.id as string),
-          columns: { role: true, username: true, image: true },
+          columns: { role: true, username: true, image: true, deletionScheduledAt: true },
         });
         if (dbUser) {
           token.role = dbUser.role;
           token.username = dbUser.username;
-          token.picture = dbUser.image; // next-auth는 image를 'picture'로 저장
+          token.picture = dbUser.image;
+          token.deletionScheduledAt = dbUser.deletionScheduledAt?.toISOString() ?? null;
         }
       }
       return token;
@@ -70,6 +71,7 @@ export const authConfig: NextAuthConfig = {
         session.user.role = token.role as string;
         session.user.username = token.username as string | undefined;
         session.user.image = token.picture as string | null | undefined;
+        session.user.deletionScheduledAt = token.deletionScheduledAt as string | null | undefined;
       }
       return session;
     },

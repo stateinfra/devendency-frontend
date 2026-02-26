@@ -32,6 +32,9 @@ export const users = pgTable("User", {
   role: roleEnum("role").default("READER").notNull(),
   suspended: boolean("suspended").default(false).notNull(),
   bio: text("bio"),
+  customDomain: text("customDomain").unique(),
+  domainVerified: boolean("domainVerified").default(false).notNull(),
+  deletionScheduledAt: timestamp("deletionScheduledAt", { mode: "date" }),
   createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
 });

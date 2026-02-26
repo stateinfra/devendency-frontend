@@ -37,6 +37,7 @@ export const RATE_LIMITS = {
   verifyEmail:  { limit: 5,  windowMs: 10 * 60 * 1000 },      // 5/10min
   resendCode:   { limit: 3,  windowMs: 10 * 60 * 1000 },      // 3/10min
   resetPassword:{ limit: 3,  windowMs: 60 * 60 * 1000 },      // 3/hr
+  forgotPassword:{ limit: 3,  windowMs: 60 * 60 * 1000 },     // 3/hr
   createPost:   { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
   updatePost:   { limit: 30, windowMs: 60 * 60 * 1000 },      // 30/hr
   deletePost:   { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
@@ -47,6 +48,7 @@ export const RATE_LIMITS = {
   upload:       { limit: 20, windowMs: 60 * 60 * 1000 },      // 20/hr
   updateProfile:{ limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
   updateAvatar: { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
+  deleteAccount:{ limit: 3,  windowMs: 60 * 60 * 1000 },      // 3/hr
 } as const;
 
 export function checkRateLimit(

@@ -8,6 +8,20 @@
       "when": 1771888604948,
       "tag": "0000_dear_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772027632527,
+      "tag": "0001_keen_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772102069795,
+      "tag": "0002_nostalgic_virginia_dare",
+      "breakpoints": true
     }
   ]
 }

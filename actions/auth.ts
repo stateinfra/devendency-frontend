@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { users, verificationTokens } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { registerSchema } from "@/lib/validations/auth";
-import { sendVerificationCode } from "@/lib/resend";
+import { sendVerificationCode, sendPasswordResetEmail } from "@/lib/resend";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 function generateCode(): string {
@@ -188,7 +188,7 @@ export async function resetPassword(
           eq(verificationTokens.token, token),
         ),
       );
-    return { error: "링크가 만료되었습니다. 관리자에게 다시 요청해주세요." };
+    return { error: "링크가 만료되었습니다. 다시 요청해주세요." };
   }
 
   const hashedPassword = await hash(newPassword, 12);
@@ -201,6 +201,49 @@ export async function resetPassword(
   await db
     .delete(verificationTokens)
     .where(eq(verificationTokens.identifier, `reset:${email}`));
+
+  return { success: true };
+}
+
+export async function requestPasswordReset(formData: FormData) {
+  const ip = await getClientIp();
+  const rl = checkRateLimit("forgotPassword", ip);
+  if (!rl.success)
+    return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  if (!email) return { error: "이메일을 입력해주세요." };
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.email, email),
+    columns: { password: true },
+  });
+
+  // 보안: 존재하지 않는 이메일이어도 동일한 성공 응답
+  if (!user) return { success: true };
+
+  // OAuth 전용 계정 (password가 null)
+  if (!user.password) {
+    return { error: "소셜 로그인 계정입니다. 해당 소셜 서비스로 로그인해주세요." };
+  }
+
+  const token = crypto.randomUUID();
+  const expires = new Date(Date.now() + 60 * 60 * 1000); // 1시간
+
+  await db
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, `reset:${email}`));
+
+  await db.insert(verificationTokens).values({
+    identifier: `reset:${email}`,
+    token,
+    expires,
+  });
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+
+  await sendPasswordResetEmail(email, resetUrl);
 
   return { success: true };
 }

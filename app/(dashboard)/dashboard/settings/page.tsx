@@ -4,6 +4,8 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/settings/settings-form";
+import { DeleteAccountSection } from "@/components/settings/delete-account-section";
+import { CustomDomainSection } from "@/components/settings/custom-domain-section";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,7 +18,7 @@ export default async function SettingsPage() {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { username: true, name: true, bio: true, image: true },
+    columns: { username: true, name: true, bio: true, image: true, password: true, deletionScheduledAt: true, customDomain: true, domainVerified: true, role: true },
   });
 
   return (
@@ -29,6 +31,16 @@ export default async function SettingsPage() {
           bio: user?.bio || "",
           image: user?.image || null,
         }}
+      />
+      {user?.role === "SUPER_ADMIN" && (
+        <CustomDomainSection
+          currentDomain={user.customDomain ?? null}
+          domainVerified={user.domainVerified ?? false}
+        />
+      )}
+      <DeleteAccountSection
+        deletionScheduledAt={user?.deletionScheduledAt?.toISOString() ?? null}
+        hasPassword={!!user?.password}
       />
     </div>
   );
