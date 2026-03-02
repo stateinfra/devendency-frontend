@@ -40,6 +40,20 @@ export function Footer() {
           </Link>
         </div>
 
+        {/* Discord CTA */}
+        <p className="text-[#dcddde]/40 text-xs">
+          원하시는 기능이 있다면{" "}
+          <Link
+            href="https://discord.gg/8q2Qr434Bg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#5865F2]/80 hover:text-[#5865F2] transition-colors underline underline-offset-2"
+          >
+            디스코드 서버
+          </Link>
+          에서 제안해주세요!
+        </p>
+
         {/* Copyright */}
         <p className="text-[#dcddde]/25 text-xs">
           &copy; {new Date().getFullYear()} Stateinfra Inc.
