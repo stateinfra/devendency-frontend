@@ -191,8 +191,13 @@ export async function createPost(formData: FormData) {
   const MAX_DRAFTS = 3;
 
   const post = await db.transaction(async (tx) => {
-    // 임시저장 시 초과 초안 자동 삭제 (가장 오래된 것부터)
-    if (!published) {
+    if (published) {
+      // 발행 시 해당 유저의 모든 임시저장 글 삭제
+      await tx
+        .delete(posts)
+        .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)));
+    } else {
+      // 임시저장 시 초과 초안 자동 삭제 (가장 오래된 것부터)
       const [{ draftCount }] = await tx
         .select({ draftCount: drizzleCount() })
         .from(posts)
@@ -314,6 +319,18 @@ export async function updatePost(postId: string, formData: FormData) {
         updatedAt: new Date(),
       })
       .where(eq(posts.id, postId));
+
+    // 임시저장 → 발행 전환 시, 해당 유저의 다른 임시저장 글 삭제
+    if (published && !wasPublished) {
+      await tx
+        .delete(posts)
+        .where(
+          and(
+            eq(posts.authorId, post.authorId),
+            eq(posts.published, false),
+          ),
+        );
+    }
 
     if (tagConnections.length) {
       await tx.insert(postTags).values(
