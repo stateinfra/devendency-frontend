@@ -11,6 +11,7 @@ import { ProfilePostSearch } from "@/components/user/profile-post-search";
 import type { PostWithRelations } from "@/types";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_CONFIG } from "@/lib/constants";
 
 type Props = {
   params: Promise<{ username: string }>;
@@ -26,10 +27,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
   const user = await db.query.users.findFirst({
     where: eq(users.username, cleanUsername(username)),
-    columns: { name: true, username: true },
+    columns: { name: true, username: true, image: true, bio: true },
   });
   if (!user) return { title: "사용자를 찾을 수 없습니다" };
-  return { title: `${user.name}의 프로필` };
+
+  const url = `${SITE_CONFIG.url}/users/@${user.username}`;
+  const description = user.bio || `${user.name}의 ${SITE_CONFIG.name} 프로필`;
+
+  return {
+    title: `${user.name}의 프로필`,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title: `${user.name}의 프로필`,
+      description,
+      url,
+      type: "profile",
+      ...(user.image ? { images: [{ url: user.image, alt: user.name || "" }] } : {}),
+    },
+  };
 }
 
 export default async function UserProfilePage({ params, searchParams }: Props) {
