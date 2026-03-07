@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { tags, postTags } from "@/lib/db/schema";
-import { asc, sql } from "drizzle-orm";
+import { asc, exists, sql, eq } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -19,6 +19,14 @@ export default async function TagsPage() {
       },
     })
     .from(tags)
+    .where(
+      exists(
+        db
+          .select({ one: sql`1` })
+          .from(postTags)
+          .where(eq(postTags.tagId, tags.id)),
+      ),
+    )
     .orderBy(asc(tags.name));
 
   return (

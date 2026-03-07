@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { posts, tags, postTags, likes } from "@/lib/db/schema";
-import { eq, and, asc, lt, count as drizzleCount } from "drizzle-orm";
+import { eq, and, asc, lt, count as drizzleCount, notExists, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
 import { isAdmin } from "@/lib/db/helpers";
@@ -364,6 +364,17 @@ export async function deletePost(postId: string) {
   }
 
   await db.delete(posts).where(eq(posts.id, postId));
+
+  // 고아 태그 정리: 어떤 글에도 연결되지 않은 태그 삭제
+  await db.delete(tags).where(
+    notExists(
+      db
+        .select({ one: sql`1` })
+        .from(postTags)
+        .where(eq(postTags.tagId, tags.id)),
+    ),
+  );
+
   revalidatePath("/");
   return { success: true };
 }
