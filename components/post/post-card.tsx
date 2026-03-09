@@ -10,14 +10,14 @@ export function PostCard({ post }: { post: PostWithRelations }) {
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">
-      <article className="flex flex-col sm:flex-row gap-5 p-5 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer">
-        {/* 표지 이미지 — 왼쪽 세로 */}
+      <article className="flex flex-col gap-4 p-4 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer h-full">
+        {/* 표지 이미지 */}
         {post.coverImage && (
-          <div className="sm:shrink-0 sm:w-[180px] sm:self-stretch overflow-hidden rounded-lg">
+          <div className="overflow-hidden rounded-lg">
             <img
               src={post.coverImage}
               alt={post.title}
-              className="w-full h-[160px] sm:h-full object-cover"
+              className="w-full h-[140px] object-cover"
             />
           </div>
         )}
@@ -36,12 +36,12 @@ export function PostCard({ post }: { post: PostWithRelations }) {
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-bold text-[#dcddde] mb-2 leading-tight group-hover:text-primary transition-colors break-keep">
+          <h3 className="text-base font-bold text-[#dcddde] mb-1.5 leading-snug group-hover:text-primary transition-colors break-keep line-clamp-2">
             {post.title}
           </h3>
 
           {/* Excerpt */}
-          <p className="text-[#dcddde]/50 text-sm leading-relaxed mb-4 line-clamp-2 break-keep">
+          <p className="text-[#dcddde]/50 text-sm leading-relaxed mb-3 line-clamp-2 break-keep">
             {generateExcerpt(post.excerpt || post.content || "")}
           </p>
 
