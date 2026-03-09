@@ -198,7 +198,7 @@ export async function getPosts(page: number = 1, search: string = "") {
 
 export async function changeUserRole(
   userId: string,
-  role: "READER" | "WRITER" | "ADMIN",
+  role: "WRITER" | "ADMIN",
 ) {
   const session = await requireSuperAdmin();
 

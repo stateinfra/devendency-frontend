@@ -32,7 +32,20 @@ export default async function HomePage({ searchParams }: Props) {
         .limit(POSTS_PER_PAGE)
         .offset((page - 1) * POSTS_PER_PAGE),
       db.select({ total: count() }).from(posts).where(eq(posts.published, true)),
-      db.query.tags.findMany({ orderBy: desc(tagsTable.name), limit: 8 }),
+      db
+        .selectDistinct({
+          id: tagsTable.id,
+          name: tagsTable.name,
+          slug: tagsTable.slug,
+        })
+        .from(tagsTable)
+        .innerJoin(
+          sql`"PostTag"`,
+          sql`"PostTag"."tagId" = ${tagsTable.id}`,
+        )
+        .innerJoin(posts, sql`${posts.id} = "PostTag"."postId" AND ${posts.published} = true`)
+        .orderBy(desc(tagsTable.name))
+        .limit(8),
     ]);
 
     const totalPages = Math.ceil(total / POSTS_PER_PAGE);
@@ -112,7 +125,20 @@ export default async function HomePage({ searchParams }: Props) {
       },
     }),
     db.select({ total: count() }).from(posts).where(whereCondition),
-    db.query.tags.findMany({ orderBy: desc(tagsTable.name), limit: 8 }),
+    db
+      .selectDistinct({
+        id: tagsTable.id,
+        name: tagsTable.name,
+        slug: tagsTable.slug,
+      })
+      .from(tagsTable)
+      .innerJoin(
+        sql`"PostTag"`,
+        sql`"PostTag"."tagId" = ${tagsTable.id}`,
+      )
+      .innerJoin(posts, sql`${posts.id} = "PostTag"."postId" AND ${posts.published} = true`)
+      .orderBy(desc(tagsTable.name))
+      .limit(8),
   ]);
 
   const postsWithCounts = postResults.map((p) => ({

@@ -14,7 +14,6 @@ import {
 
 // ── Enums ──
 export const roleEnum = pgEnum("Role", [
-  "READER",
   "WRITER",
   "ADMIN",
   "SUPER_ADMIN",
@@ -29,7 +28,7 @@ export const users = pgTable("User", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   password: text("password"),
-  role: roleEnum("role").default("READER").notNull(),
+  role: roleEnum("role").default("WRITER").notNull(),
   suspended: boolean("suspended").default(false).notNull(),
   bio: text("bio"),
   customDomain: text("customDomain").unique(),

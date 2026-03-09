@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { tags, postTags } from "@/lib/db/schema";
-import { asc, exists, sql, eq } from "drizzle-orm";
+import { tags, postTags, posts } from "@/lib/db/schema";
+import { asc, exists, sql, eq, and } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -15,7 +15,7 @@ export default async function TagsPage() {
       name: tags.name,
       slug: tags.slug,
       _count: {
-        posts: sql<number>`(SELECT count(*) FROM "PostTag" WHERE "PostTag"."tagId" = "Tag"."id")::int`,
+        posts: sql<number>`(SELECT count(*) FROM "PostTag" INNER JOIN "Post" ON "Post"."id" = "PostTag"."postId" WHERE "PostTag"."tagId" = "Tag"."id" AND "Post"."published" = true)::int`,
       },
     })
     .from(tags)
@@ -24,7 +24,8 @@ export default async function TagsPage() {
         db
           .select({ one: sql`1` })
           .from(postTags)
-          .where(eq(postTags.tagId, tags.id)),
+          .innerJoin(posts, eq(posts.id, postTags.postId))
+          .where(and(eq(postTags.tagId, tags.id), eq(posts.published, true))),
       ),
     )
     .orderBy(asc(tags.name));

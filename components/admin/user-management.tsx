@@ -25,7 +25,7 @@ type User = {
   _count: { posts: number; comments: number };
 };
 
-type AssignableRole = "READER" | "WRITER" | "ADMIN";
+type AssignableRole = "WRITER" | "ADMIN";
 
 type ModalAction = {
   type: "delete" | "suspend" | "password" | "role";
@@ -234,7 +234,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                           </span>
                         </button>
                         <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block bg-card border border-white/[0.08] rounded-lg shadow-xl py-1 min-w-[100px]">
-                          {(["READER", "WRITER", "ADMIN"] as AssignableRole[])
+                          {(["WRITER", "ADMIN"] as AssignableRole[])
                             .filter((r) => r !== user.role)
                             .map((r) => (
                               <button
