@@ -12,15 +12,13 @@ export function PostCard({ post }: { post: PostWithRelations }) {
     <Link href={`/posts/${post.slug}`} className="block">
       <article className="flex flex-col gap-4 p-4 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer h-full">
         {/* 표지 이미지 */}
-        {post.coverImage && (
-          <div className="overflow-hidden rounded-lg aspect-[16/9]">
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+        <div className="overflow-hidden rounded-lg aspect-[16/9]">
+          <img
+            src={post.coverImage || "/placeholder.svg"}
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         <div className="flex-1 flex flex-col min-w-0">
           {/* Tags */}
