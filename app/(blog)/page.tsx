@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { posts, follows, tags as tagsTable, likes as likesTable } from "@/lib/db/schema";
+import { posts, follows } from "@/lib/db/schema";
 import { eq, desc, and, inArray, sql, count } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { FeedTabs } from "@/components/post/feed-tabs";
@@ -23,7 +23,7 @@ export default async function HomePage({ searchParams }: Props) {
   if (tab === "popular") {
     const likeCountExpr = sql<number>`(SELECT count(*) FROM "Like" WHERE "Like"."postId" = ${posts.id})`;
 
-    const [popularIds, [{ total }], popularTags] = await Promise.all([
+    const [popularIds, [{ total }]] = await Promise.all([
       db
         .select({ postId: posts.id })
         .from(posts)
@@ -32,20 +32,6 @@ export default async function HomePage({ searchParams }: Props) {
         .limit(POSTS_PER_PAGE)
         .offset((page - 1) * POSTS_PER_PAGE),
       db.select({ total: count() }).from(posts).where(eq(posts.published, true)),
-      db
-        .selectDistinct({
-          id: tagsTable.id,
-          name: tagsTable.name,
-          slug: tagsTable.slug,
-        })
-        .from(tagsTable)
-        .innerJoin(
-          sql`"PostTag"`,
-          sql`"PostTag"."tagId" = ${tagsTable.id}`,
-        )
-        .innerJoin(posts, sql`${posts.id} = "PostTag"."postId" AND ${posts.published} = true`)
-        .orderBy(desc(tagsTable.name))
-        .limit(8),
     ]);
 
     const totalPages = Math.ceil(total / POSTS_PER_PAGE);
@@ -74,20 +60,13 @@ export default async function HomePage({ searchParams }: Props) {
 
     return (
       <div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-          <div className="lg:col-span-8">
-            <FeedTabs />
-            <PostList
-              posts={postResults}
-              currentPage={page}
-              totalPages={totalPages}
-              baseUrl="/?tab=popular"
-            />
-          </div>
-          <aside className="hidden lg:block lg:col-span-4 space-y-8 pl-4">
-            <TagSidebar tags={popularTags} />
-          </aside>
-        </div>
+        <FeedTabs />
+        <PostList
+          posts={postResults}
+          currentPage={page}
+          totalPages={totalPages}
+          baseUrl="/?tab=popular"
+        />
       </div>
     );
   }
@@ -111,7 +90,7 @@ export default async function HomePage({ searchParams }: Props) {
     }
   }
 
-  const [postResults, [{ total }], popularTags] = await Promise.all([
+  const [postResults, [{ total }]] = await Promise.all([
     db.query.posts.findMany({
       where: whereCondition,
       orderBy: desc(posts.publishedAt),
@@ -125,20 +104,6 @@ export default async function HomePage({ searchParams }: Props) {
       },
     }),
     db.select({ total: count() }).from(posts).where(whereCondition),
-    db
-      .selectDistinct({
-        id: tagsTable.id,
-        name: tagsTable.name,
-        slug: tagsTable.slug,
-      })
-      .from(tagsTable)
-      .innerJoin(
-        sql`"PostTag"`,
-        sql`"PostTag"."tagId" = ${tagsTable.id}`,
-      )
-      .innerJoin(posts, sql`${posts.id} = "PostTag"."postId" AND ${posts.published} = true`)
-      .orderBy(desc(tagsTable.name))
-      .limit(8),
   ]);
 
   const postsWithCounts = postResults.map((p) => ({
@@ -152,73 +117,30 @@ export default async function HomePage({ searchParams }: Props) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-        <div className="lg:col-span-8">
-          <FeedTabs />
-          {isFollowingNoAuth ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <span className="material-symbols-outlined text-[48px] text-[#dcddde]/20 mb-4">
-                login
-              </span>
-              <p className="text-[#dcddde]/50 text-sm mb-4">
-                팔로잉 피드를 보려면 로그인이 필요합니다.
-              </p>
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
-              >
-                로그인
-              </Link>
-            </div>
-          ) : (
-            <PostList
-              posts={postsWithCounts as unknown as PostWithRelations[]}
-              currentPage={page}
-              totalPages={totalPages}
-              baseUrl={baseUrl}
-            />
-          )}
-        </div>
-
-        <aside className="hidden lg:block lg:col-span-4 space-y-8 pl-4">
-          <TagSidebar tags={popularTags} />
-        </aside>
-      </div>
-    </div>
-  );
-}
-
-function TagSidebar({
-  tags,
-}: {
-  tags: { id: string; name: string; slug: string }[];
-}) {
-  if (tags.length === 0) return null;
-  return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-      <h3 className="text-xs font-semibold text-[#dcddde]/50 uppercase tracking-wider mb-3 flex items-center gap-2">
-        <span className="material-symbols-outlined text-xs">tag</span>
-        태그
-      </h3>
-      <div className="flex flex-col gap-1">
-        {tags.map((tag) => (
+      <FeedTabs />
+      {isFollowingNoAuth ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <span className="material-symbols-outlined text-[48px] text-[#dcddde]/20 mb-4">
+            login
+          </span>
+          <p className="text-[#dcddde]/50 text-sm mb-4">
+            팔로잉 피드를 보려면 로그인이 필요합니다.
+          </p>
           <Link
-            key={tag.id}
-            href={`/tags/${tag.slug}`}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#dcddde]/70 hover:text-[#dcddde] hover:bg-white/[0.04] transition-colors"
+            href="/login"
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            <span className="text-primary/60">#</span>
-            {tag.name}
+            로그인
           </Link>
-        ))}
-      </div>
-      <Link
-        href="/tags"
-        className="mt-2 flex items-center justify-center gap-1 py-2 text-xs text-[#dcddde]/40 hover:text-primary transition-colors"
-      >
-        더보기
-        <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-      </Link>
+        </div>
+      ) : (
+        <PostList
+          posts={postsWithCounts as unknown as PostWithRelations[]}
+          currentPage={page}
+          totalPages={totalPages}
+          baseUrl={baseUrl}
+        />
+      )}
     </div>
   );
 }
