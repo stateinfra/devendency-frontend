@@ -13,11 +13,11 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       <article className="flex flex-col gap-4 p-4 bg-card rounded-xl border border-white/[0.06] hover:border-white/[0.12] transition-all group cursor-pointer h-full">
         {/* 표지 이미지 */}
         {post.coverImage && (
-          <div className="overflow-hidden rounded-lg">
+          <div className="overflow-hidden rounded-lg aspect-[16/9]">
             <img
               src={post.coverImage}
               alt={post.title}
-              className="w-full h-[140px] object-cover"
+              className="w-full h-full object-cover"
             />
           </div>
         )}
