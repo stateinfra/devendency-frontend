@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { users, posts, likes, follows, series } from "@/lib/db/schema";
@@ -54,8 +53,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const { username } = await params;
   const { q, tab } = await searchParams;
   const session = await auth();
-  const cookieStore = await cookies();
-  const isCustomDomain = !!cookieStore.get("x-custom-domain")?.value;
 
   const user = await db.query.users.findFirst({
     where: eq(users.username, cleanUsername(username)),
@@ -160,26 +157,23 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               <h2 className="text-3xl font-bold text-white">{user.name}</h2>
               <span className="text-slate-500 text-sm">@{user.username}</span>
             </div>
-            {!isCustomDomain && !isOwnProfile && session?.user && (
+            {!isOwnProfile && session?.user && (
               <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
             )}
           </div>
           {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
-          {!isCustomDomain && (
-            <FollowStats
-              username={user.username!}
-              postCount={postCount}
-              followerCount={followerCount}
-              followingCount={followingCount}
-              totalLikes={totalLikes}
-            />
-          )}
+          <FollowStats
+            username={user.username!}
+            postCount={postCount}
+            followerCount={followerCount}
+            followingCount={followingCount}
+            totalLikes={totalLikes}
+          />
         </div>
       </div>
 
-      {/* 탭 — 커스텀 도메인에서는 숨김 */}
-      {!isCustomDomain && (
-        <div className="border-b border-white/[0.08] mb-8">
+      {/* 탭 */}
+      <div className="border-b border-white/[0.08] mb-8">
           <div className="flex items-center justify-between pb-0">
             <div className="flex items-center gap-0">
               <Link
@@ -222,8 +216,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               <ProfilePostSearch initialQuery={q} username={user.username!} tab={activeTab} />
             )}
           </div>
-        </div>
-      )}
+      </div>
 
       {/* 시리즈 탭 */}
       {activeTab === "series" ? (
