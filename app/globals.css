@@ -79,6 +79,14 @@
   }
 }
 
+/* CodeMirror selection highlight */
+.cm-selectionBackground {
+  background-color: rgba(127, 109, 242, 0.25) !important;
+}
+.cm-focused .cm-selectionBackground {
+  background-color: rgba(127, 109, 242, 0.3) !important;
+}
+
 /* Custom scrollbar — light */
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
