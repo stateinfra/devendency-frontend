@@ -147,8 +147,8 @@ type MarkdownEditorProps = {
 const editorTheme = EditorView.theme(
   {
     "&": {
-      backgroundColor: "#202020",
-      color: "#dcddde",
+      backgroundColor: "var(--background)",
+      color: "var(--foreground)",
       fontSize: "1rem",
       lineHeight: "1.75",
     },
@@ -166,7 +166,7 @@ const editorTheme = EditorView.theme(
       backgroundColor: "rgba(127, 109, 242, 0.2) !important",
     },
     ".cm-activeLine": {
-      backgroundColor: "rgba(255, 255, 255, 0.03)",
+      backgroundColor: "rgba(128, 128, 128, 0.05)",
     },
     ".cm-activeLineGutter": {
       backgroundColor: "transparent",
@@ -175,7 +175,7 @@ const editorTheme = EditorView.theme(
       display: "none",
     },
     ".cm-placeholder": {
-      color: "#475569",
+      color: "#94a3b8",
       fontStyle: "normal",
     },
     "&.cm-focused": {
@@ -188,7 +188,7 @@ const editorTheme = EditorView.theme(
       padding: "1px 0",
     },
     ".cm-codeblock-line": {
-      backgroundColor: "#1a1a1a",
+      backgroundColor: "var(--card)",
       fontFamily: '"Fira Code", "JetBrains Mono", "Consolas", monospace',
       fontSize: "0.85rem",
       lineHeight: "1.65",
@@ -196,7 +196,7 @@ const editorTheme = EditorView.theme(
       paddingLeft: "12px !important",
     },
   },
-  { dark: true }
+  { dark: false }
 );
 
 const codeBlockLine = Decoration.line({ class: "cm-codeblock-line" });
@@ -998,7 +998,7 @@ export function MarkdownEditor({
             placeholder="제목을 입력하세요"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder:text-slate-700 leading-tight"
+            className="w-full text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-slate-700 leading-tight"
             autoFocus
           />
 
@@ -1035,7 +1035,7 @@ export function MarkdownEditor({
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleTagKeyDown}
-                className="flex-1 min-w-[80px] bg-transparent text-xs outline-none placeholder:text-slate-600 text-slate-400"
+                className="flex-1 min-w-[80px] bg-transparent text-xs outline-none placeholder:text-gray-400 dark:placeholder:text-slate-600 text-slate-400"
               />
             </div>
 

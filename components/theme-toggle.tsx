@@ -2,18 +2,31 @@
 
 import { useTheme } from "./theme-provider";
 
+const MODES = [
+  { key: "light" as const, icon: "light_mode" },
+  { key: "auto" as const, icon: "routine" },
+  { key: "dark" as const, icon: "dark_mode" },
+];
+
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const { mode, setMode } = useTheme();
 
   return (
-    <button
-      onClick={toggleTheme}
-      aria-label="테마 전환"
-      className="size-10 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-600 dark:text-slate-300 transition-colors"
-    >
-      <span className="material-symbols-outlined text-[22px]">
-        {theme === "dark" ? "light_mode" : "dark_mode"}
-      </span>
-    </button>
+    <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] rounded-full p-0.5">
+      {MODES.map((m) => (
+        <button
+          key={m.key}
+          onClick={() => setMode(m.key)}
+          aria-label={`${m.key} 테마`}
+          className={`size-8 flex items-center justify-center rounded-full transition-all ${
+            mode === m.key
+              ? "bg-white dark:bg-white/20 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[16px]">{m.icon}</span>
+        </button>
+      ))}
+    </div>
   );
 }

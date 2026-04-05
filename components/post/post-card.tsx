@@ -13,7 +13,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">
-      <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-3 -m-3 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
+      <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-3 -m-3 transition-all duration-200 ease-in-out hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
           {post.coverImage ? (

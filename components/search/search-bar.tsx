@@ -16,13 +16,13 @@ export function SearchBar() {
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#dcddde]/30">
+      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 dark:text-[#dcddde]/30">
         search
       </span>
       <input
         type="search"
         placeholder="검색..."
-        className="w-full md:w-[200px] h-9 pl-9 pr-3 rounded-full border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+        className="w-full md:w-[200px] h-9 pl-9 pr-3 rounded-full border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
