@@ -9,6 +9,7 @@ type PostListProps = {
   currentPage: number;
   totalPages: number;
   baseUrl?: string;
+  singleColumn?: boolean;
 };
 
 export function PostList({
@@ -16,6 +17,7 @@ export function PostList({
   currentPage,
   totalPages,
   baseUrl = "/",
+  singleColumn = false,
 }: PostListProps) {
   if (posts.length === 0) {
     return (
@@ -28,7 +30,7 @@ export function PostList({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={singleColumn ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"}>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

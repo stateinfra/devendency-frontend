@@ -13,6 +13,26 @@ import { tags } from "@lezer/highlight";
 import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
 import { ImageCropModal } from "./cover-image-crop-modal";
+import { YouTubePasteMenu } from "./youtube-paste-menu";
+
+// ── YouTube URL detection ──
+function extractYouTubeVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+type YouTubePasteState = {
+  url: string;
+  videoId: string;
+  position: { x: number; y: number };
+  cursorPos: number;
+};
 
 // ── Image upload helper ──
 async function uploadImageFile(file: File): Promise<string> {
@@ -61,8 +81,26 @@ function isImageFile(file: File) {
   return file.type.startsWith("image/");
 }
 
+// YouTube paste callback ref — set by MarkdownEditor component
+let onYouTubePasteCallback: ((url: string, videoId: string, coords: { x: number; y: number }, cursorPos: number) => void) | null = null;
+
 const imageUploadExtension = EditorView.domEventHandlers({
   paste(event, view) {
+    // Check for YouTube URL in plain text paste
+    const text = event.clipboardData?.getData("text/plain")?.trim();
+    if (text && onYouTubePasteCallback) {
+      const videoId = extractYouTubeVideoId(text);
+      if (videoId) {
+        event.preventDefault();
+        const cursorPos = view.state.selection.main.head;
+        const coords = view.coordsAtPos(cursorPos);
+        const x = coords ? coords.left : 100;
+        const y = coords ? coords.bottom + 8 : 100;
+        onYouTubePasteCallback(text, videoId, { x, y }, cursorPos);
+        return true;
+      }
+    }
+
     const files = event.clipboardData?.files;
     if (!files?.length) return false;
     for (const file of Array.from(files)) {
@@ -412,6 +450,17 @@ export function MarkdownEditor({
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const [ytPaste, setYtPaste] = useState<YouTubePasteState | null>(null);
+
+  // Register YouTube paste callback
+  useEffect(() => {
+    onYouTubePasteCallback = (url, videoId, position, cursorPos) => {
+      setYtPaste({ url, videoId, position, cursorPos });
+    };
+    return () => {
+      onYouTubePasteCallback = null;
+    };
+  }, []);
 
   // ── Cover image crop & upload ──
   function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -548,6 +597,25 @@ export function MarkdownEditor({
   const handleContentChange = useCallback((value: string) => {
     setContent(value);
   }, []);
+
+  const handleYouTubeSelect = useCallback(
+    (type: "text" | "link" | "video") => {
+      if (!ytPaste || !editorRef.current?.view) return;
+      const view = editorRef.current.view;
+      const { url, videoId, cursorPos } = ytPaste;
+      let insert = "";
+      if (type === "text") {
+        insert = url;
+      } else if (type === "link") {
+        insert = `[${url}](${url})`;
+      } else {
+        insert = `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>\n`;
+      }
+      view.dispatch({ changes: { from: cursorPos, insert } });
+      setYtPaste(null);
+    },
+    [ytPaste],
+  );
 
   // ── Auto-save (debounce 3s after last edit) ──
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1062,6 +1130,16 @@ export function MarkdownEditor({
           />
         </div>
       </div>
+
+      {ytPaste && (
+        <YouTubePasteMenu
+          url={ytPaste.url}
+          videoId={ytPaste.videoId}
+          position={ytPaste.position}
+          onSelect={handleYouTubeSelect}
+          onClose={() => setYtPaste(null)}
+        />
+      )}
 
       <ImageCropModal
         open={cropModalOpen}

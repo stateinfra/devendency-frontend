@@ -155,10 +155,10 @@ export default async function PostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative max-w-[1200px] mx-auto">
         <aside className="hidden lg:block lg:col-span-3 relative">
           <div className="sticky top-28 space-y-8">
-            {!isDraft && <PostActions variant="sidebar" />}
+            {!isDraft && <PostActions variant="sidebar" markdownContent={post.content} />}
             <TableOfContents content={post.content} />
           </div>
         </aside>
@@ -274,7 +274,7 @@ export default async function PostPage({ params }: Props) {
 
           {!isDraft && (
             <div className="lg:hidden my-8">
-              <PostActions variant="inline" />
+              <PostActions variant="inline" markdownContent={post.content} />
             </div>
           )}
 

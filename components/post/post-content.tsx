@@ -2,6 +2,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
+import rehypeRaw from "rehype-raw";
 import { MermaidDiagram } from "./mermaid-diagram";
 
 function safeUrl(url: string): string {
@@ -17,7 +18,7 @@ export function PostContent({ content }: { content: string }) {
     <div className="obsidian-md">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight, rehypeSlug]}
+        rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeSlug]}
         urlTransform={safeUrl}
         components={{
           code: ({ node, className, children, ...props }: any) => {

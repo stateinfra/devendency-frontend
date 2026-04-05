@@ -68,6 +68,7 @@ export default async function SearchPage({ searchParams }: Props) {
         currentPage={page}
         totalPages={totalPages}
         baseUrl={`/search?q=${encodeURIComponent(query)}`}
+        singleColumn
       />
     </div>
   );

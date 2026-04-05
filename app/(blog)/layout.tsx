@@ -9,7 +9,7 @@ export default async function BlogLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-6 py-8">
+      <main className="flex-grow w-full px-6 md:px-12 lg:px-16 py-8">
         {children}
       </main>
       <Footer />
