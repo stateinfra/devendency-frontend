@@ -187,7 +187,6 @@ const editorTheme = EditorView.theme(
     },
     ".cm-line": {
       padding: "1px 0",
-      backgroundColor: "var(--background)",
     },
     ".cm-codeblock-line": {
       backgroundColor: "var(--card)",
