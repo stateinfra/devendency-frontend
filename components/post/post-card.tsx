@@ -14,11 +14,19 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       <article className="flex flex-col gap-4 group cursor-pointer h-full">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
-          <SkeletonImage
-            src={post.coverImage || "/placeholder.svg"}
-            alt={post.title}
-            className="w-full h-full object-cover"
-          />
+          {post.coverImage ? (
+            <SkeletonImage
+              src={post.coverImage}
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src="/placeholder.svg"
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
 
         <div className="flex-1 flex flex-col min-w-0">
