@@ -147,8 +147,8 @@ type MarkdownEditorProps = {
 const editorTheme = EditorView.theme(
   {
     "&": {
-      backgroundColor: "var(--background)",
-      color: "var(--foreground)",
+      backgroundColor: "var(--background) !important",
+      color: "var(--foreground) !important",
       fontSize: "1rem",
       lineHeight: "1.75",
     },
@@ -166,7 +166,7 @@ const editorTheme = EditorView.theme(
       backgroundColor: "rgba(127, 109, 242, 0.2) !important",
     },
     ".cm-activeLine": {
-      backgroundColor: "transparent",
+      backgroundColor: "var(--active-line)",
     },
     ".cm-activeLineGutter": {
       backgroundColor: "transparent",
