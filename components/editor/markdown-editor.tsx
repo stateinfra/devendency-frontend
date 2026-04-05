@@ -853,7 +853,7 @@ export function MarkdownEditor({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-[#202020]"
+      className="fixed inset-0 z-50 flex flex-col bg-gray-50 dark:bg-[#202020]"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
@@ -862,19 +862,19 @@ export function MarkdownEditor({
       {/* Drag & drop overlay */}
       {isDragging && (
         <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-3 p-10 rounded-2xl border-2 border-dashed border-primary/60 bg-white/[0.03]">
+          <div className="flex flex-col items-center gap-3 p-10 rounded-2xl border-2 border-dashed border-primary/60 bg-black/[0.03] dark:bg-white/[0.03]">
             <span className="material-symbols-outlined text-5xl text-primary/80">upload</span>
-            <p className="text-sm font-medium text-slate-300">이미지를 여기에 놓아주세요</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-slate-300">이미지를 여기에 놓아주세요</p>
             <p className="text-xs text-slate-500">JPG, PNG, GIF, WebP</p>
           </div>
         </div>
       )}
 
       {/* Minimal top bar */}
-      <div className="flex items-center justify-between px-5 h-14 border-b border-white/[0.06] shrink-0">
+      <div className="flex items-center justify-between px-5 h-14 border-b border-black/[0.06] dark:border-white/[0.06] shrink-0">
         <Link
           href={postId && initialData?.slug ? `/posts/${initialData.slug}` : "/"}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           나가기
@@ -884,7 +884,7 @@ export function MarkdownEditor({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+            className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             title="이미지 추가"
           >
             <span className="material-symbols-outlined text-[18px]">image</span>
@@ -919,7 +919,7 @@ export function MarkdownEditor({
             type="button"
             onClick={() => handleSubmit(false)}
             disabled={isPending || title.trim().length < 2 || !content}
-            className="h-8 px-4 rounded-full border border-white/10 text-slate-400 text-xs font-medium hover:bg-white/5 hover:text-slate-200 transition-colors disabled:opacity-40"
+            className="h-8 px-4 rounded-full border border-black/10 dark:border-white/10 text-slate-400 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-600 dark:hover:text-slate-200 transition-colors disabled:opacity-40"
           >
             임시저장
           </button>
@@ -927,7 +927,7 @@ export function MarkdownEditor({
             type="button"
             onClick={() => handleSubmit(true)}
             disabled={isPending || title.trim().length < 2 || !content}
-            className="h-8 px-4 rounded-full bg-primary hover:bg-primary/80 text-white text-xs font-medium transition-colors disabled:opacity-40"
+            className="h-8 px-4 rounded-full bg-primary hover:bg-primary/80 text-white dark:text-white text-xs font-medium transition-colors disabled:opacity-40"
           >
             {isPending ? "저장 중..." : "발행"}
           </button>
@@ -968,7 +968,7 @@ export function MarkdownEditor({
                 type="button"
                 onClick={() => coverFileInputRef.current?.click()}
                 disabled={isCoverUploading}
-                className="w-full h-[80px] rounded-xl border border-dashed border-white/[0.08] hover:border-white/20 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-400 transition-all disabled:opacity-40"
+                className="w-full h-[80px] rounded-xl border border-dashed border-black/[0.08] dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/20 flex items-center justify-center gap-2 text-slate-600 hover:text-slate-400 transition-all disabled:opacity-40"
               >
                 {isCoverUploading ? (
                   <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -998,7 +998,7 @@ export function MarkdownEditor({
             placeholder="제목을 입력하세요"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-4xl font-bold bg-transparent border-none outline-none text-white placeholder:text-slate-700 leading-tight"
+            className="w-full text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder:text-slate-700 leading-tight"
             autoFocus
           />
 
@@ -1008,7 +1008,7 @@ export function MarkdownEditor({
               {selectedTags.map((name) => (
                 <span
                   key={name}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/[0.06] text-slate-400 text-xs rounded-md"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-black/[0.06] dark:bg-white/[0.06] text-slate-400 text-xs rounded-md"
                 >
                   #{name}
                   <button
@@ -1042,14 +1042,14 @@ export function MarkdownEditor({
             {showSuggestions && tagInput && filteredTags.length > 0 && (
               <div
                 ref={suggestionsRef}
-                className="absolute z-10 top-full left-0 mt-1 bg-[#2a2a2a] border border-white/[0.08] rounded-lg shadow-xl max-h-40 overflow-y-auto min-w-[180px]"
+                className="absolute z-10 top-full left-0 mt-1 bg-white dark:bg-[#2a2a2a] border border-black/[0.08] dark:border-white/[0.08] rounded-lg shadow-xl max-h-40 overflow-y-auto min-w-[180px]"
               >
                 {filteredTags.slice(0, 8).map((tag) => (
                   <button
                     key={tag.id}
                     type="button"
                     onClick={() => addTag(tag.name)}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors first:rounded-t-lg last:rounded-b-lg"
+                    className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white transition-colors first:rounded-t-lg last:rounded-b-lg"
                   >
                     <span className="text-slate-600 mr-1">#</span>
                     {tag.name}
@@ -1078,14 +1078,14 @@ export function MarkdownEditor({
                 <button
                   type="button"
                   onClick={() => setShowSeriesDropdown((v) => !v)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-300 rounded-lg border border-dashed border-white/[0.08] hover:border-white/20 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-300 rounded-lg border border-dashed border-black/[0.08] dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/20 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[14px]">auto_stories</span>
                   시리즈에 추가
                 </button>
               )}
               {showSeriesDropdown && !selectedSeriesId && (
-                <div className="absolute z-10 top-full left-0 mt-1 bg-[#2a2a2a] border border-white/[0.08] rounded-lg shadow-xl min-w-[200px] py-1">
+                <div className="absolute z-10 top-full left-0 mt-1 bg-white dark:bg-[#2a2a2a] border border-black/[0.08] dark:border-white/[0.08] rounded-lg shadow-xl min-w-[200px] py-1">
                   {userSeries.map((s) => (
                     <button
                       key={s.id}
@@ -1094,7 +1094,7 @@ export function MarkdownEditor({
                         setSelectedSeriesId(s.id);
                         setShowSeriesDropdown(false);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors flex items-center gap-2"
+                      className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined text-[14px] text-slate-600">auto_stories</span>
                       {s.name}
@@ -1106,7 +1106,7 @@ export function MarkdownEditor({
           )}
 
           {/* Divider */}
-          <div className="border-t border-white/[0.04]" />
+          <div className="border-t border-black/[0.04] dark:border-white/[0.04]" />
 
           {/* CodeMirror Editor */}
           <CodeMirror

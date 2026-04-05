@@ -88,7 +88,7 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={isPending}
-        className="relative group w-20 h-20 rounded-full overflow-hidden ring-2 ring-white/[0.08] hover:ring-primary/50 transition-all disabled:opacity-60 shrink-0"
+        className="relative group w-20 h-20 rounded-full overflow-hidden ring-2 ring-black/[0.08] dark:ring-white/[0.08] hover:ring-primary/50 transition-all disabled:opacity-60 shrink-0"
         aria-label="프로필 사진 변경"
       >
         {preview ? (
@@ -124,8 +124,8 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
 
       {/* 안내 텍스트 */}
       <div className="flex flex-col gap-1">
-        <p className="text-sm text-[#dcddde]/70">프로필 사진</p>
-        <p className="text-xs text-[#dcddde]/40">JPG, PNG, WebP, GIF · 최대 5MB</p>
+        <p className="text-sm text-gray-500 dark:text-[#dcddde]/70">프로필 사진</p>
+        <p className="text-xs text-gray-400 dark:text-[#dcddde]/40">JPG, PNG, WebP, GIF · 최대 5MB</p>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}

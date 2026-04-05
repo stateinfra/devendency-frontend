@@ -42,7 +42,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
   if (error) {
     return (
-      <pre className="text-red-400 bg-[#1a1a1a] p-4 rounded-lg overflow-x-auto text-sm">
+      <pre className="text-red-400 bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-lg overflow-x-auto text-sm">
         <code>{chart}</code>
         <div className="mt-2 text-xs text-red-500">Mermaid error: {error}</div>
       </pre>
@@ -52,7 +52,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   return (
     <div
       ref={containerRef}
-      className="my-6 flex justify-center overflow-x-auto rounded-lg bg-[#1a1a1a] p-4"
+      className="my-6 flex justify-center overflow-x-auto rounded-lg bg-gray-50 dark:bg-[#1a1a1a] p-4"
     />
   );
 }

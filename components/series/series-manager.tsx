@@ -95,19 +95,19 @@ export function SeriesManager({
     <div className="space-y-6">
       {/* 생성 버튼/폼 */}
       {showCreate ? (
-        <div className="p-5 rounded-xl border border-white/[0.08] bg-card space-y-3">
+        <div className="p-5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card space-y-3">
           <input
             placeholder="시리즈 이름"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
+            className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
             autoFocus
           />
           <input
             placeholder="설명 (선택)"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
+            className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
           />
           <div className="flex items-center gap-2">
             <button
@@ -119,7 +119,7 @@ export function SeriesManager({
             </button>
             <button
               onClick={() => { setShowCreate(false); setNewName(""); setNewDescription(""); }}
-              className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-white transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               취소
             </button>
@@ -128,7 +128,7 @@ export function SeriesManager({
       ) : (
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-white/10 text-slate-400 text-sm hover:border-white/20 hover:text-white transition-colors w-full justify-center"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-black/10 dark:border-white/10 text-slate-400 text-sm hover:border-black/20 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white transition-colors w-full justify-center"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           새 시리즈 만들기
@@ -143,7 +143,7 @@ export function SeriesManager({
       {initialSeries.map((s) => (
         <div
           key={s.id}
-          className="rounded-xl border border-white/[0.08] bg-card overflow-hidden"
+          className="rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card overflow-hidden"
         >
           {editingId === s.id ? (
             <div className="p-5 space-y-3">
@@ -157,7 +157,7 @@ export function SeriesManager({
                 placeholder="설명 (선택)"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
+                className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
               />
               <div className="flex items-center gap-2">
                 <button
@@ -169,7 +169,7 @@ export function SeriesManager({
                 </button>
                 <button
                   onClick={() => setEditingId(null)}
-                  className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-white transition-colors"
+                  className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   취소
                 </button>
@@ -181,7 +181,7 @@ export function SeriesManager({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[18px]">auto_stories</span>
-                    <h3 className="font-bold text-white">{s.name}</h3>
+                    <h3 className="font-bold text-gray-900 dark:text-white">{s.name}</h3>
                   </div>
                   {s.description && (
                     <p className="text-sm text-slate-400 mt-1">{s.description}</p>
@@ -190,7 +190,7 @@ export function SeriesManager({
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleEdit(s)}
-                    className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors"
+                    className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                   </button>
@@ -206,21 +206,21 @@ export function SeriesManager({
 
               {/* 시리즈 내 글 목록 */}
               {s.posts.length > 0 ? (
-                <div className="space-y-1 mt-3 pt-3 border-t border-white/[0.06]">
+                <div className="space-y-1 mt-3 pt-3 border-t border-black/[0.06] dark:border-white/[0.06]">
                   {s.posts.map((post, i) => (
                     <div
                       key={post.id}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-white/[0.03] transition-colors"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
                     >
                       <span className="text-slate-600 text-xs w-5">{i + 1}.</span>
                       <Link
                         href={`/posts/${post.slug}`}
-                        className="text-slate-300 hover:text-white transition-colors truncate flex-1"
+                        className="text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors truncate flex-1"
                       >
                         {post.title}
                       </Link>
                       {!post.published && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-slate-700 text-slate-400">
                           비공개
                         </span>
                       )}

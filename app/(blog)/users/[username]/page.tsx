@@ -145,23 +145,23 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     <div className="w-full max-w-[768px] mx-auto py-12 md:py-16">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         {user.image ? (
-          <img src={user.image} alt={user.name || "User"} className="size-28 md:size-36 rounded-full object-cover flex-shrink-0 ring-2 ring-white/10" />
+          <img src={user.image} alt={user.name || "User"} className="size-28 md:size-36 rounded-full object-cover flex-shrink-0 ring-2 ring-black/10 dark:ring-white/10" />
         ) : (
-          <div className="size-28 md:size-36 rounded-full bg-white/10 flex items-center justify-center text-4xl font-bold text-slate-400 flex-shrink-0">
+          <div className="size-28 md:size-36 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-4xl font-bold text-gray-400 dark:text-slate-400 flex-shrink-0">
             {user.name?.[0]?.toUpperCase() || "?"}
           </div>
         )}
         <div className="flex-1 text-center md:text-left space-y-4">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div>
-              <h2 className="text-3xl font-bold text-white">{user.name}</h2>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
               <span className="text-slate-500 text-sm">@{user.username}</span>
             </div>
             {!isOwnProfile && session?.user && (
               <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
             )}
           </div>
-          {user.bio && <p className="text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
+          {user.bio && <p className="text-gray-500 dark:text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
           <FollowStats
             username={user.username!}
             postCount={postCount}
@@ -173,7 +173,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
       </div>
 
       {/* 탭 */}
-      <div className="border-b border-white/[0.08] mb-8">
+      <div className="border-b border-black/[0.08] dark:border-white/[0.08] mb-8">
           <div className="flex items-center justify-between pb-0">
             <div className="flex items-center gap-0">
               <Link
@@ -181,7 +181,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === "posts"
                     ? "border-primary text-primary"
-                    : "border-transparent text-slate-500 hover:text-slate-300"
+                    : "border-transparent text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
                 }`}
               >
                 포스트
@@ -191,7 +191,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                 className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === "series"
                     ? "border-primary text-primary"
-                    : "border-transparent text-slate-500 hover:text-slate-300"
+                    : "border-transparent text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
                 }`}
               >
                 시리즈
@@ -202,12 +202,12 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
                   className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
                     activeTab === "drafts"
                       ? "border-primary text-primary"
-                      : "border-transparent text-slate-500 hover:text-slate-300"
+                      : "border-transparent text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
                   }`}
                 >
                   임시저장
                   {draftCount > 0 && (
-                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10">{draftCount}</span>
+                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10">{draftCount}</span>
                   )}
                 </Link>
               )}
@@ -227,16 +227,16 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             {userSeriesList.map((s) => (
               <div
                 key={s.id}
-                className="p-5 rounded-xl border border-white/[0.08] bg-card hover:bg-white/[0.02] transition-colors"
+                className="p-5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="material-symbols-outlined text-primary text-[18px]">auto_stories</span>
-                      <h3 className="font-bold text-white truncate">{s.name}</h3>
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate">{s.name}</h3>
                     </div>
                     {s.description && (
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-2">{s.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 line-clamp-2">{s.description}</p>
                     )}
                   </div>
                   <span className="text-xs text-slate-500 flex-shrink-0 mt-1">

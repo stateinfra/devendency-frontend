@@ -16,7 +16,7 @@ export function AdminPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
   return (
     <div>
-      <div className="flex gap-1 mb-6 border-b border-white/[0.08]">
+      <div className="flex gap-1 mb-6 border-b border-black/[0.08] dark:border-white/[0.08]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -24,7 +24,7 @@ export function AdminPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
             className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === tab.id
                 ? "border-primary text-primary"
-                : "border-transparent text-[#dcddde]/50 hover:text-[#dcddde]/80"
+                : "border-transparent text-gray-500 dark:text-[#dcddde]/50 hover:text-gray-700 dark:hover:text-[#dcddde]/80"
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">

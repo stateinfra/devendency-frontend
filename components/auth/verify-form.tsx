@@ -98,7 +98,7 @@ export function VerifyForm({ email }: { email: string }) {
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={i === 0 ? handlePaste : undefined}
-            className="size-12 text-center text-lg font-bold rounded-lg border border-white/[0.06] bg-white/[0.04] text-[#dcddde] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            className="size-12 text-center text-lg font-bold rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-gray-900 dark:text-[#dcddde] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             disabled={isPending}
           />
         ))}
@@ -116,7 +116,7 @@ export function VerifyForm({ email }: { email: string }) {
         <button
           onClick={handleResend}
           disabled={isPending || cooldown > 0}
-          className="text-sm text-[#dcddde]/40 hover:text-primary transition-colors disabled:cursor-not-allowed"
+          className="text-sm text-gray-400 dark:text-[#dcddde]/40 hover:text-primary transition-colors disabled:cursor-not-allowed"
         >
           {cooldown > 0
             ? `재발송 (${cooldown}초)`

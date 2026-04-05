@@ -70,7 +70,7 @@ export function PostManagement() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="제목, 작성자 검색..."
-          className="flex-1 h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="flex-1 h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
         <button
           type="submit"
@@ -80,38 +80,38 @@ export function PostManagement() {
         </button>
       </form>
 
-      <p className="text-sm text-[#dcddde]/50 mb-4">
+      <p className="text-sm text-gray-500 dark:text-[#dcddde]/50 mb-4">
         총 {total}개
       </p>
 
-      <div className="border border-white/[0.08] rounded-xl overflow-hidden">
+      <div className="border border-black/[0.08] dark:border-white/[0.08] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-white/[0.02]">
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">제목</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">작성자</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">상태</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">반응</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">작성일</th>
-                <th className="text-right px-4 py-3 text-[#dcddde]/50 font-medium">액션</th>
+              <tr className="border-b border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02]">
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">제목</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">작성자</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">상태</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">반응</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">작성일</th>
+                <th className="text-right px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">액션</th>
               </tr>
             </thead>
             <tbody className={isPending ? "opacity-50" : ""}>
               {posts.map((post) => (
                 <tr
                   key={post.id}
-                  className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors"
+                  className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                 >
                   <td className="px-4 py-3">
                     <Link
                       href={`/posts/${post.slug}`}
-                      className="text-[#dcddde] hover:text-primary transition-colors font-medium line-clamp-1"
+                      className="text-gray-900 dark:text-[#dcddde] hover:text-primary transition-colors font-medium line-clamp-1"
                     >
                       {post.title}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-[#dcddde]/50 text-xs">
+                  <td className="px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 text-xs">
                     {post.author.username
                       ? `@${post.author.username}`
                       : post.author.name || "알 수 없음"}
@@ -123,10 +123,10 @@ export function PostManagement() {
                       <span className="text-xs text-yellow-400">비공개</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-[#dcddde]/50 text-xs">
+                  <td className="px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 text-xs">
                     좋아요 {post._count.likes} · 댓글 {post._count.comments}
                   </td>
-                  <td className="px-4 py-3 text-[#dcddde]/40 text-xs">
+                  <td className="px-4 py-3 text-gray-400 dark:text-[#dcddde]/40 text-xs">
                     {format(new Date(post.createdAt), "yyyy.MM.dd")}
                   </td>
                   <td className="px-4 py-3">
@@ -134,7 +134,7 @@ export function PostManagement() {
                       <button
                         onClick={() => setDeleteTarget(post)}
                         title="삭제"
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#dcddde]/50 hover:text-red-400 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 dark:text-[#dcddde]/50 hover:text-red-400 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           delete
@@ -146,7 +146,7 @@ export function PostManagement() {
               ))}
               {posts.length === 0 && !isPending && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-[#dcddde]/30">
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400 dark:text-[#dcddde]/30">
                     게시글이 없습니다
                   </td>
                 </tr>
@@ -161,17 +161,17 @@ export function PostManagement() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="h-8 px-3 rounded-lg text-sm text-[#dcddde]/60 hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
+            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             이전
           </button>
-          <span className="text-sm text-[#dcddde]/40">
+          <span className="text-sm text-gray-400 dark:text-[#dcddde]/40">
             {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="h-8 px-3 rounded-lg text-sm text-[#dcddde]/60 hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
+            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             다음
           </button>

@@ -14,7 +14,7 @@ export default async function AdminPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">관리자</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">관리자</h1>
       <AdminPanel isSuperAdmin={isSuperAdmin} />
     </div>
   );

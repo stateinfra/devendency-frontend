@@ -56,7 +56,7 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
     return (
       <div className="p-6 bg-card rounded-xl border border-red-500/20">
         <h2 className="text-lg font-semibold text-red-400 mb-2">탈퇴 예정 계정</h2>
-        <p className="text-sm text-[#dcddde]/60 mb-4">
+        <p className="text-sm text-gray-500 dark:text-[#dcddde]/60 mb-4">
           이 계정은 <span className="text-red-400 font-medium">{formattedDate}</span>에 영구 삭제될 예정입니다.
           탈퇴를 취소하면 계정이 정상적으로 복구됩니다.
         </p>
@@ -72,9 +72,9 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
   }
 
   return (
-    <div className="p-6 bg-card rounded-xl border border-white/[0.08]">
+    <div className="p-6 bg-card rounded-xl border border-black/[0.08] dark:border-white/[0.08]">
       <h2 className="text-lg font-semibold text-red-400 mb-2">회원 탈퇴</h2>
-      <p className="text-sm text-[#dcddde]/60 mb-4">
+      <p className="text-sm text-gray-500 dark:text-[#dcddde]/60 mb-4">
         탈퇴를 요청하면 30일의 유예 기간 후 계정과 모든 데이터가 영구 삭제됩니다.
         유예 기간 내에 다시 로그인하면 탈퇴를 취소할 수 있습니다.
       </p>
@@ -99,10 +99,10 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호"
                 required
-                className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors"
+                className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors"
               />
             ) : (
-              <p className="text-sm text-[#dcddde]/50">
+              <p className="text-sm text-gray-500 dark:text-[#dcddde]/50">
                 소셜 로그인 계정은 비밀번호 확인이 불가합니다. 관리자에게 문의해주세요.
               </p>
             )}
@@ -114,7 +114,7 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
                 setShowConfirm(false);
                 setPassword("");
               }}
-              className="h-10 px-4 rounded-lg border border-white/[0.06] text-sm text-[#dcddde]/70 hover:bg-white/[0.04] transition-colors"
+              className="h-10 px-4 rounded-lg border border-black/[0.06] dark:border-white/[0.06] text-sm text-gray-500 dark:text-[#dcddde]/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
             >
               취소
             </button>

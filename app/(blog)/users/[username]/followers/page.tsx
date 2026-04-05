@@ -57,12 +57,12 @@ export default async function FollowersPage({ params }: Props) {
       <div className="flex items-center gap-3 mb-8">
         <Link
           href={`/users/@${user.username}`}
-          className="size-9 flex items-center justify-center rounded-full hover:bg-white/10 text-slate-400 transition-colors"
+          className="size-9 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-gray-500 dark:text-slate-400 transition-colors"
         >
           <span className="material-symbols-outlined text-[22px]">arrow_back</span>
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-white">팔로워</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">팔로워</h1>
           <p className="text-sm text-slate-500">@{user.username}</p>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default async function FollowersPage({ params }: Props) {
       {list.length === 0 ? (
         <p className="text-center text-slate-500 py-16">아직 팔로워가 없습니다</p>
       ) : (
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-black/[0.06] dark:divide-white/[0.06]">
           {list.map((u) => (
             <li key={u.id} className="flex items-center gap-4 py-4">
               <Link href={`/users/@${u.username}`} className="shrink-0">
@@ -90,7 +90,7 @@ export default async function FollowersPage({ params }: Props) {
                 )}
               </Link>
               <Link href={`/users/@${u.username}`} className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{u.name}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{u.name}</p>
                 <p className="text-xs text-slate-500 truncate">@{u.username}</p>
               </Link>
               {session?.user && session.user.id !== u.id && (

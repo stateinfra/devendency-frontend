@@ -31,7 +31,7 @@ export function Sidebar() {
     : sidebarItems;
 
   return (
-    <aside className="w-64 border-r border-white/[0.08] min-h-[calc(100vh-4rem)] p-4 hidden lg:block bg-card">
+    <aside className="w-64 border-r border-black/[0.08] dark:border-white/[0.08] min-h-[calc(100vh-4rem)] p-4 hidden lg:block bg-card">
       <nav className="space-y-1">
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -42,7 +42,7 @@ export function Sidebar() {
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                 isActive
                   ? "bg-primary/10 text-primary font-medium"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  : "text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">

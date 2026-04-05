@@ -48,7 +48,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-[#dcddde]/70">
+        <label htmlFor="email" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
           이메일
         </label>
         <input
@@ -57,12 +57,12 @@ export function LoginForm() {
           type="email"
           placeholder="you@example.com"
           required
-          className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label htmlFor="password" className="text-sm font-medium text-[#dcddde]/70">
+          <label htmlFor="password" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
             비밀번호
           </label>
           <Link
@@ -78,13 +78,13 @@ export function LoginForm() {
           type="password"
           placeholder="••••••"
           required
-          className="w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
       </div>
 
       {unverifiedEmail && (
         <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-          <p className="text-sm text-[#dcddde]/60 mb-2">이메일 인증이 완료되지 않았습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-[#dcddde]/60 mb-2">이메일 인증이 완료되지 않았습니다.</p>
           <Link
             href={`/verify?email=${encodeURIComponent(unverifiedEmail)}`}
             className="text-sm text-primary hover:underline font-medium"

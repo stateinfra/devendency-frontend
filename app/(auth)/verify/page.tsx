@@ -20,11 +20,11 @@ export default async function VerifyPage({ searchParams }: Props) {
             <span className="material-symbols-outlined text-primary text-[24px]">mail</span>
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-[#dcddde]">이메일 인증</h1>
-        <p className="text-sm text-[#dcddde]/40">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-[#dcddde]">이메일 인증</h1>
+        <p className="text-sm text-gray-400 dark:text-[#dcddde]/40">
           {email ? (
             <>
-              <span className="text-[#dcddde]/70">{email}</span>
+              <span className="text-gray-500 dark:text-[#dcddde]/70">{email}</span>
               <span>으로 발송된 인증 코드를 입력해주세요.</span>
             </>
           ) : (

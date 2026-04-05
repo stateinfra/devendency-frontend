@@ -39,14 +39,14 @@ export function ResetPasswordForm({
   }
 
   const inputClass =
-    "w-full h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors";
+    "w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <label
           htmlFor="password"
-          className="text-sm font-medium text-[#dcddde]/70"
+          className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70"
         >
           새 비밀번호
         </label>
@@ -63,7 +63,7 @@ export function ResetPasswordForm({
       <div className="space-y-2">
         <label
           htmlFor="confirm"
-          className="text-sm font-medium text-[#dcddde]/70"
+          className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70"
         >
           비밀번호 확인
         </label>

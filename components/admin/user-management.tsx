@@ -37,7 +37,7 @@ function roleBadgeClass(role: string) {
   if (role === "SUPER_ADMIN") return "bg-amber-500/10 text-amber-400";
   if (role === "ADMIN") return "bg-primary/10 text-primary";
   if (role === "WRITER") return "bg-emerald-500/10 text-emerald-400";
-  return "bg-white/[0.06] text-[#dcddde]/60";
+  return "bg-black/[0.06] dark:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/60";
 }
 
 export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
@@ -183,7 +183,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="이름, 이메일, 사용자명 검색..."
-          className="flex-1 h-10 px-3 rounded-lg border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="flex-1 h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
         <button
           type="submit"
@@ -193,33 +193,33 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         </button>
       </form>
 
-      <p className="text-sm text-[#dcddde]/50 mb-4">총 {total}명</p>
+      <p className="text-sm text-gray-500 dark:text-[#dcddde]/50 mb-4">총 {total}명</p>
 
-      <div className="border border-white/[0.08] rounded-xl overflow-hidden">
+      <div className="border border-black/[0.08] dark:border-white/[0.08] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-white/[0.02]">
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">유저</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">역할</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">상태</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">활동</th>
-                <th className="text-left px-4 py-3 text-[#dcddde]/50 font-medium">가입일</th>
-                <th className="text-right px-4 py-3 text-[#dcddde]/50 font-medium">액션</th>
+              <tr className="border-b border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.02]">
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">유저</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">역할</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">상태</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">활동</th>
+                <th className="text-left px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">가입일</th>
+                <th className="text-right px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 font-medium">액션</th>
               </tr>
             </thead>
             <tbody className={isPending ? "opacity-50" : ""}>
               {users.map((user) => (
                 <tr
                   key={user.id}
-                  className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors"
+                  className="border-b border-black/[0.04] dark:border-white/[0.04] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                 >
                   <td className="px-4 py-3">
                     <div>
-                      <p className="text-[#dcddde] font-medium">
+                      <p className="text-gray-900 dark:text-[#dcddde] font-medium">
                         {user.name || "이름 없음"}
                       </p>
-                      <p className="text-[#dcddde]/40 text-xs">
+                      <p className="text-gray-400 dark:text-[#dcddde]/40 text-xs">
                         {user.username ? `@${user.username}` : user.email}
                       </p>
                     </div>
@@ -233,7 +233,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                             expand_more
                           </span>
                         </button>
-                        <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block bg-card border border-white/[0.08] rounded-lg shadow-xl py-1 min-w-[100px]">
+                        <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block bg-card border border-black/[0.08] dark:border-white/[0.08] rounded-lg shadow-xl py-1 min-w-[100px]">
                           {(["WRITER", "ADMIN"] as AssignableRole[])
                             .filter((r) => r !== user.role)
                             .map((r) => (
@@ -242,7 +242,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                                 onClick={() =>
                                   setModal({ type: "role", user, newRole: r })
                                 }
-                                className="w-full text-left px-3 py-1.5 text-xs text-[#dcddde]/70 hover:bg-white/[0.06] hover:text-[#dcddde] transition-colors"
+                                className="w-full text-left px-3 py-1.5 text-xs text-gray-500 dark:text-[#dcddde]/70 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
                               >
                                 {r}
                               </button>
@@ -267,10 +267,10 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                       <span className="text-xs text-emerald-400">정상</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-[#dcddde]/50 text-xs">
+                  <td className="px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 text-xs">
                     글 {user._count.posts} · 댓글 {user._count.comments}
                   </td>
-                  <td className="px-4 py-3 text-[#dcddde]/40 text-xs">
+                  <td className="px-4 py-3 text-gray-400 dark:text-[#dcddde]/40 text-xs">
                     {format(new Date(user.createdAt), "yyyy.MM.dd")}
                   </td>
                   <td className="px-4 py-3">
@@ -278,7 +278,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                       <button
                         onClick={() => setModal({ type: "suspend", user })}
                         title={user.suspended ? "정지 해제" : "정지"}
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#dcddde]/50 hover:text-[#dcddde] transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           {user.suspended ? "lock_open" : "block"}
@@ -287,7 +287,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                       <button
                         onClick={() => setModal({ type: "password", user })}
                         title="비밀번호 변경 메일"
-                        className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#dcddde]/50 hover:text-[#dcddde] transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           mail
@@ -296,7 +296,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                       <button
                         onClick={() => setModal({ type: "delete", user })}
                         title="삭제"
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-[#dcddde]/50 hover:text-red-400 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 dark:text-[#dcddde]/50 hover:text-red-400 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           delete
@@ -308,7 +308,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
               ))}
               {users.length === 0 && !isPending && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-[#dcddde]/30">
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400 dark:text-[#dcddde]/30">
                     유저가 없습니다
                   </td>
                 </tr>
@@ -323,17 +323,17 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="h-8 px-3 rounded-lg text-sm text-[#dcddde]/60 hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
+            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             이전
           </button>
-          <span className="text-sm text-[#dcddde]/40">
+          <span className="text-sm text-gray-400 dark:text-[#dcddde]/40">
             {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="h-8 px-3 rounded-lg text-sm text-[#dcddde]/60 hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
+            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             다음
           </button>

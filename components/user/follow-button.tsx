@@ -33,7 +33,7 @@ export function FollowButton({
       disabled={isPending}
       className={`h-9 px-5 rounded-full text-sm font-medium transition-colors ${
         following
-          ? "bg-white/10 text-slate-300 hover:bg-red-900/20 hover:text-red-400 border border-white/10"
+          ? "bg-black/10 dark:bg-white/10 text-gray-600 dark:text-slate-300 hover:bg-red-900/20 hover:text-red-400 border border-black/10 dark:border-white/10"
           : "bg-primary text-white hover:bg-primary/80"
       }`}
     >

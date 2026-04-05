@@ -27,7 +27,7 @@ export default async function SeriesPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
-      <h1 className="text-2xl font-bold text-white mb-8">시리즈 관리</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">시리즈 관리</h1>
       <SeriesManager initialSeries={userSeries} />
     </div>
   );

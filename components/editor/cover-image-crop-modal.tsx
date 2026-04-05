@@ -98,10 +98,10 @@ export function ImageCropModal({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      <div className="relative bg-card border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
+      <div className="relative bg-card border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
-          <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.06]">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
           <span className="text-[11px] text-slate-500">{sizeLabel}</span>
         </div>
 
@@ -120,7 +120,7 @@ export function ImageCropModal({
         </div>
 
         {/* Zoom slider */}
-        <div className="flex items-center gap-3 px-5 py-3 border-t border-white/[0.06]">
+        <div className="flex items-center gap-3 px-5 py-3 border-t border-black/[0.06] dark:border-white/[0.06]">
           <span className="material-symbols-outlined text-[16px] text-slate-500">
             photo_size_select_small
           </span>
@@ -131,7 +131,7 @@ export function ImageCropModal({
             step={0.01}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="flex-1 h-1 accent-primary bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
+            className="flex-1 h-1 accent-primary bg-black/10 dark:bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
           />
           <span className="material-symbols-outlined text-[16px] text-slate-500">
             photo_size_select_large
@@ -139,12 +139,12 @@ export function ImageCropModal({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end px-5 py-3 border-t border-white/[0.06]">
+        <div className="flex gap-3 justify-end px-5 py-3 border-t border-black/[0.06] dark:border-white/[0.06]">
           <button
             type="button"
             onClick={onClose}
             disabled={isProcessing}
-            className="h-9 px-4 rounded-lg text-sm font-medium text-[#dcddde]/70 hover:bg-white/10 transition-colors"
+            className="h-9 px-4 rounded-lg text-sm font-medium text-gray-500 dark:text-[#dcddde]/70 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             취소
           </button>

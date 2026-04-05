@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { formatDate, generateExcerpt } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
+import { useTheme } from "@/components/theme-provider";
 
 export function PostCard({ post }: { post: PostWithRelations }) {
   const router = useRouter();
+  const { theme } = useTheme();
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">
-      <article className="flex flex-col gap-4 group cursor-pointer h-full">
+      <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-3 -m-3 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
           {post.coverImage ? (
@@ -22,7 +24,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
             />
           ) : (
             <img
-              src="/placeholder.svg"
+              src={theme === "dark" ? "/placeholder.svg" : "/placeholder-light.svg"}
               alt={post.title}
               className="w-full h-full object-cover"
             />
