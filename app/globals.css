@@ -57,7 +57,7 @@
   --ring: #7f6df2;
   --active-line: rgba(0, 0, 0, 0.06);
 }
-.dark {
+:root.dark, .dark {
   --background: #202020;
   --foreground: #dcddde;
   --card: #262626;
