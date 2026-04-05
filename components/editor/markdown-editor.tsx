@@ -166,7 +166,7 @@ const editorTheme = EditorView.theme(
       backgroundColor: "rgba(127, 109, 242, 0.2) !important",
     },
     ".cm-activeLine": {
-      backgroundColor: "rgba(128, 128, 128, 0.05)",
+      backgroundColor: "transparent",
     },
     ".cm-activeLineGutter": {
       backgroundColor: "transparent",
