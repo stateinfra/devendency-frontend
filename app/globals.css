@@ -55,7 +55,7 @@
   --primary-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.08);
   --ring: #7f6df2;
-  --active-line: rgba(0, 0, 0, 0.03);
+  --active-line: rgba(0, 0, 0, 0.06);
 }
 .dark {
   --background: #202020;
