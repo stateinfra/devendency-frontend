@@ -40,7 +40,7 @@ export function CommentForm({ postId, parentId, onSuccess }: CommentFormProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="w-full px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.04] text-sm text-[#dcddde] placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
+        className="w-full px-4 py-3 rounded-xl border border-black/[0.1] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
       />
       <button
         type="submit"

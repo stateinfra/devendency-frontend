@@ -31,17 +31,17 @@ export function PostCard({ post }: { post: PostWithRelations }) {
 
         <div className="flex-1 flex flex-col min-w-0">
           {/* Title */}
-          <h3 className="text-base font-bold text-[#dcddde] mb-1.5 leading-snug group-hover:text-primary transition-colors break-keep line-clamp-2">
+          <h3 className="text-base font-bold text-gray-900 dark:text-[#dcddde] mb-1.5 leading-snug group-hover:text-primary transition-colors break-keep line-clamp-2">
             {post.title}
           </h3>
 
           {/* Excerpt */}
-          <p className="text-[#dcddde]/50 text-xs leading-relaxed mb-3 line-clamp-1 break-keep">
+          <p className="text-gray-500 dark:text-[#dcddde]/50 text-xs leading-relaxed mb-3 line-clamp-1 break-keep">
             {generateExcerpt(post.excerpt || post.content || "")}
           </p>
 
           {/* Footer */}
-          <div className="mt-auto flex items-center justify-between text-xs text-[#dcddde]/30">
+          <div className="mt-auto flex items-center justify-between text-xs text-gray-400 dark:text-[#dcddde]/30">
             <div className="flex items-center gap-2">
               <span
                 role="link"
@@ -59,11 +59,11 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                     className="size-5 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="size-5 rounded-full bg-white/[0.08] flex items-center justify-center text-[8px] font-bold">
+                  <div className="size-5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] flex items-center justify-center text-[8px] font-bold">
                     {post.author.name?.[0]?.toUpperCase() || "A"}
                   </div>
                 )}
-                <span className="font-medium text-[#dcddde]/60">
+                <span className="font-medium text-gray-600 dark:text-[#dcddde]/60">
                   {post.author.name}
                 </span>
               </span>

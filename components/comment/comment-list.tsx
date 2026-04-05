@@ -29,7 +29,7 @@ export function CommentList({
 }: CommentListProps) {
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-bold text-[#dcddde]">
+      <h3 className="text-lg font-bold text-gray-900 dark:text-[#dcddde]">
         댓글 {comments.length}개
       </h3>
       <CommentForm postId={postId} />

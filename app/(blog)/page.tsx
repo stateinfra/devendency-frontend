@@ -120,10 +120,10 @@ export default async function HomePage({ searchParams }: Props) {
       <FeedTabs />
       {isFollowingNoAuth ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <span className="material-symbols-outlined text-[48px] text-[#dcddde]/20 mb-4">
+          <span className="material-symbols-outlined text-[48px] text-gray-300 dark:text-[#dcddde]/20 mb-4">
             login
           </span>
-          <p className="text-[#dcddde]/50 text-sm mb-4">
+          <p className="text-gray-400 dark:text-[#dcddde]/50 text-sm mb-4">
             팔로잉 피드를 보려면 로그인이 필요합니다.
           </p>
           <Link

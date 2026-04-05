@@ -31,7 +31,7 @@ export function FeedTabs() {
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
               isActive
                 ? "bg-primary/10 text-primary"
-                : "text-[#dcddde]/40 hover:text-[#dcddde]/70 hover:bg-white/[0.04]"
+                : "text-gray-400 dark:text-[#dcddde]/40 hover:text-gray-600 dark:hover:text-[#dcddde]/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">

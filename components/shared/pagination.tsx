@@ -19,7 +19,7 @@ export function Pagination({
       {currentPage > 1 && (
         <Link
           href={`${baseUrl}${separator}page=${currentPage - 1}`}
-          className="size-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] text-[#dcddde]/50 transition-colors"
+          className="size-10 flex items-center justify-center rounded-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-400 dark:text-[#dcddde]/50 transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">chevron_left</span>
         </Link>
@@ -40,7 +40,7 @@ export function Pagination({
       {currentPage < totalPages && (
         <Link
           href={`${baseUrl}${separator}page=${currentPage + 1}`}
-          className="size-10 flex items-center justify-center rounded-full hover:bg-white/[0.06] text-[#dcddde]/50 transition-colors"
+          className="size-10 flex items-center justify-center rounded-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-400 dark:text-[#dcddde]/50 transition-colors"
         >
           <span className="material-symbols-outlined text-[20px]">chevron_right</span>
         </Link>

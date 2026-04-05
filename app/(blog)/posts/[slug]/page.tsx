@@ -168,7 +168,7 @@ export default async function PostPage({ params }: Props) {
 
         <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full">
           {isDraft && (
-            <div className="mb-6 px-4 py-3 rounded-lg bg-yellow-900/20 border border-yellow-800/40 text-yellow-300 text-sm flex items-center gap-2">
+            <div className="mb-6 px-4 py-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800/40 text-yellow-700 dark:text-yellow-300 text-sm flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">edit_note</span>
               이 글은 임시저장 상태입니다. 본인만 볼 수 있습니다.
             </div>
@@ -203,18 +203,18 @@ export default async function PostPage({ params }: Props) {
                 <Link
                   key={tag.id}
                   href={`/tags/${tag.slug}`}
-                  className="px-2.5 py-1 bg-white/5 rounded-lg text-xs text-slate-400 hover:bg-white/10 hover:text-primary transition-colors"
+                  className="px-2.5 py-1 bg-black/5 dark:bg-white/5 rounded-lg text-xs text-gray-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-primary transition-colors"
                 >
                   #{tag.name}
                 </Link>
               ))}
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-[2.5rem] font-bold tracking-tight text-white leading-tight mb-6 break-keep">
+            <h1 className="text-3xl sm:text-4xl md:text-[2.5rem] font-bold tracking-tight text-gray-900 dark:text-white leading-tight mb-6 break-keep">
               {post.title}
             </h1>
 
-            <div className="flex items-center justify-between py-4 border-b border-white/[0.08]">
+            <div className="flex items-center justify-between py-4 border-b border-black/[0.08] dark:border-white/[0.08]">
               <Link href={`/users/@${post.author.username}`} className="flex items-center gap-3 group">
                 {post.author.image ? (
                   <SkeletonImage
@@ -223,13 +223,13 @@ export default async function PostPage({ params }: Props) {
                     className="size-10 rounded-full object-cover ring-2 ring-transparent group-hover:ring-primary/30 transition-all"
                   />
                 ) : (
-                  <div className="size-10 rounded-full bg-white/10 flex items-center justify-center text-sm font-bold text-slate-400">
+                  <div className="size-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-sm font-bold text-gray-500 dark:text-slate-400">
                     {post.author.name?.[0]?.toUpperCase() || "A"}
                   </div>
                 )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white text-sm group-hover:text-primary transition-colors">
+                    <span className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary transition-colors">
                       {post.author.name}
                     </span>
                     <span className="text-xs text-slate-500">
@@ -242,7 +242,7 @@ export default async function PostPage({ params }: Props) {
                 <div className="flex items-center gap-1">
                   <Link
                     href={`/dashboard/posts/${post.id}/edit`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
                     수정
@@ -268,7 +268,7 @@ export default async function PostPage({ params }: Props) {
           )}
 
           {!isDraft && (
-            <div className="mt-16 pt-8 border-t border-white/[0.08]">
+            <div className="mt-16 pt-8 border-t border-black/[0.08] dark:border-white/[0.08]">
               <div className="flex justify-center mb-8">
                 <PostActions variant="bottom" />
               </div>

@@ -112,7 +112,7 @@ export function TableOfContents({ content }: { content: string }) {
           } ${
             activeId === heading.id
               ? "border-primary text-primary font-medium"
-              : "border-transparent text-slate-500 hover:text-slate-300"
+              : "border-transparent text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
           }`}
         >
           {heading.text}

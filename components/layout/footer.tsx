@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] py-10 mt-auto">
+    <footer className="border-t border-black/[0.06] dark:border-white/[0.06] py-10 mt-auto">
       <div className="max-w-[1200px] mx-auto px-4 md:px-6 flex flex-col items-center gap-6">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 text-[#dcddde]">
-          <div className="size-5 text-[#dcddde]/50">
+        <div className="flex items-center gap-2.5 text-gray-900 dark:text-[#dcddde]">
+          <div className="size-5 text-gray-500 dark:text-[#dcddde]/50">
             <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor" />
             </svg>
@@ -20,7 +20,7 @@ export function Footer() {
             href="https://github.com/stateinfra"
             target="_blank"
             rel="noopener noreferrer"
-            className="size-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[#dcddde]/40 hover:text-[#dcddde] hover:bg-white/[0.08] hover:border-white/[0.12] transition-all"
+            className="size-9 rounded-lg bg-black/[0.04] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] flex items-center justify-center text-gray-400 dark:text-[#dcddde]/40 hover:text-gray-900 dark:hover:text-[#dcddde] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] hover:border-black/[0.1] dark:hover:border-white/[0.12] transition-all"
             aria-label="GitHub"
           >
             <svg className="size-[18px]" fill="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@ export function Footer() {
             href="https://discord.gg/8q2Qr434Bg"
             target="_blank"
             rel="noopener noreferrer"
-            className="size-9 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[#dcddde]/40 hover:text-[#5865F2] hover:bg-[#5865F2]/10 hover:border-[#5865F2]/20 transition-all"
+            className="size-9 rounded-lg bg-black/[0.04] dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] flex items-center justify-center text-gray-400 dark:text-[#dcddde]/40 hover:text-[#5865F2] hover:bg-[#5865F2]/10 hover:border-[#5865F2]/20 transition-all"
             aria-label="Discord"
           >
             <svg className="size-[18px]" fill="currentColor" viewBox="0 0 24 24">
@@ -41,7 +41,7 @@ export function Footer() {
         </div>
 
         {/* Discord CTA */}
-        <p className="text-[#dcddde]/40 text-xs">
+        <p className="text-gray-400 dark:text-[#dcddde]/40 text-xs">
           원하시는 기능이 있다면{" "}
           <Link
             href="https://discord.gg/8q2Qr434Bg"
@@ -55,7 +55,7 @@ export function Footer() {
         </p>
 
         {/* Copyright */}
-        <p className="text-[#dcddde]/25 text-xs">
+        <p className="text-gray-300 dark:text-[#dcddde]/25 text-xs">
           &copy; {new Date().getFullYear()} Stateinfra Inc.
         </p>
       </div>

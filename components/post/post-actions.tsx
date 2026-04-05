@@ -128,7 +128,7 @@ function ShareButtonWithRadial({
               >
                 <button
                   onClick={item.action}
-                  className="share-radial-btn flex items-center gap-0 overflow-hidden rounded-full border border-white/10 bg-[#2a2a2a] text-[#dcddde]/60 transition-all duration-300 shadow-lg group-hover:gap-1.5"
+                  className="share-radial-btn flex items-center gap-0 overflow-hidden rounded-full border border-black/10 dark:border-white/10 bg-white dark:bg-[#2a2a2a] text-gray-500 dark:text-[#dcddde]/60 transition-all duration-300 shadow-lg group-hover:gap-1.5"
                   style={{
                     height: buttonSize,
                     minWidth: buttonSize,
@@ -178,7 +178,7 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
           className={`size-10 flex items-center justify-center rounded-full border transition-colors shadow-sm ${
             liked
               ? "text-red-500 border-red-800 bg-red-900/20"
-              : "text-[#dcddde]/40 border-white/10 bg-card hover:text-red-500 hover:bg-white/5"
+              : "text-gray-400 dark:text-[#dcddde]/40 border-black/10 dark:border-white/10 bg-card hover:text-red-500 hover:bg-black/5 dark:hover:bg-white/5"
           }`}
         >
           <span
@@ -190,7 +190,7 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
         </button>
         <ShareButtonWithRadial
           markdownContent={markdownContent}
-          buttonClass="flex items-center justify-center rounded-full border border-white/10 bg-card hover:bg-white/5 text-[#dcddde]/40 hover:text-green-400 shadow-sm"
+          buttonClass="flex items-center justify-center rounded-full border border-black/10 dark:border-white/10 bg-card hover:bg-black/5 dark:hover:bg-white/5 text-gray-400 dark:text-[#dcddde]/40 hover:text-green-400 shadow-sm"
           buttonSize={40}
           iconSize={20}
         />
@@ -209,12 +209,12 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
           className={`size-16 rounded-full border flex items-center justify-center transition-all group-hover:scale-110 ${
             liked
               ? "bg-red-900/20 border-red-800"
-              : "bg-card border-white/10 group-hover:bg-red-900/10 group-hover:border-red-800/50"
+              : "bg-card border-black/10 dark:border-white/10 group-hover:bg-red-900/10 group-hover:border-red-800/50"
           }`}
         >
           <span
             className={`material-symbols-outlined text-3xl transition-colors ${
-              liked ? "text-red-500" : "text-[#dcddde]/40 group-hover:text-red-500"
+              liked ? "text-red-500" : "text-gray-400 dark:text-[#dcddde]/40 group-hover:text-red-500"
             }`}
             style={liked ? { fontVariationSettings: "'FILL' 1" } : {}}
           >
@@ -223,7 +223,7 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
         </div>
         <span
           className={`text-sm font-medium transition-colors ${
-            liked ? "text-red-500" : "text-[#dcddde]/40 group-hover:text-red-500"
+            liked ? "text-red-500" : "text-gray-400 dark:text-[#dcddde]/40 group-hover:text-red-500"
           }`}
         >
           {likeCount}
@@ -240,7 +240,7 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
         className={`flex items-center gap-1.5 px-4 py-2 rounded-full border transition-colors text-sm font-medium ${
           liked
             ? "text-red-500 border-red-800 bg-red-900/20"
-            : "text-[#dcddde]/40 border-white/10 hover:text-red-500 hover:border-red-800/50 hover:bg-red-900/10"
+            : "text-gray-400 dark:text-[#dcddde]/40 border-black/10 dark:border-white/10 hover:text-red-500 hover:border-red-800/50 hover:bg-red-900/10"
         }`}
       >
         <span
@@ -253,7 +253,7 @@ export function PostActions({ variant = "inline", markdownContent }: PostActions
       </button>
       <ShareButtonWithRadial
         markdownContent={markdownContent}
-        buttonClass="flex items-center justify-center rounded-full border border-white/10 text-[#dcddde]/40 hover:text-primary hover:border-primary/30 hover:bg-primary/5"
+        buttonClass="flex items-center justify-center rounded-full border border-black/10 dark:border-white/10 text-gray-400 dark:text-[#dcddde]/40 hover:text-primary hover:border-primary/30 hover:bg-primary/5"
         buttonSize={36}
         iconSize={18}
       />

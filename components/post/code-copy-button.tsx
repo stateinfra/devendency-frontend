@@ -15,7 +15,7 @@ export function CodeCopyButton({ code }: { code: string }) {
     <button
       onClick={handleCopy}
       aria-label="코드 복사"
-      className="absolute top-3 right-3 p-1.5 flex items-center justify-center rounded-md bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-slate-400 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+      className="absolute top-3 right-3 p-1.5 flex items-center justify-center rounded-md bg-black/[0.06] dark:bg-white/[0.06] hover:bg-black/[0.1] dark:hover:bg-white/[0.12] border border-black/[0.08] dark:border-white/[0.08] text-slate-400 hover:text-gray-900 dark:hover:text-white transition-all opacity-0 group-hover:opacity-100"
     >
       <span
         className="material-symbols-outlined"

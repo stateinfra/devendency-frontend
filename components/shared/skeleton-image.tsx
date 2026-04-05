@@ -11,7 +11,7 @@ export function SkeletonImage({
   return (
     <div className={`relative ${className}`}>
       {!loaded && (
-        <div className="absolute inset-0 bg-white/[0.06] animate-pulse rounded-[inherit]" />
+        <div className="absolute inset-0 bg-black/[0.08] dark:bg-white/[0.06] animate-pulse rounded-[inherit]" />
       )}
       <img
         {...props}
