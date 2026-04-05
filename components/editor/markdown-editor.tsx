@@ -936,7 +936,7 @@ export function MarkdownEditor({
 
       {/* Scrollable editor area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-6 py-10 space-y-4">
+        <div className="max-w-[960px] mx-auto px-6 py-10 space-y-4">
           {/* Cover image */}
           <div>
             {coverImage ? (
