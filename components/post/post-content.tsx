@@ -4,6 +4,8 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import rehypeRaw from "rehype-raw";
 import { MermaidDiagram } from "./mermaid-diagram";
+import { CodeCopyButton } from "./code-copy-button";
+import { ImageLightbox } from "./image-lightbox";
 
 function safeUrl(url: string): string {
   if (!url) return "";
@@ -41,10 +43,21 @@ export function PostContent({ content }: { content: string }) {
             if (child?.className && /language-mermaid/.test(child.className)) {
               return <>{children}</>;
             }
-            return <pre {...props}>{children}</pre>;
+            const code = String(child?.children ?? "").replace(/\n$/, "");
+            return (
+              <pre {...props} className={`${props.className ?? ""} group relative`}>
+                {children}
+                <CodeCopyButton code={code} />
+              </pre>
+            );
           },
+          a: ({ node, href, children, ...props }: any) => (
+            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+              {children}
+            </a>
+          ),
           img: ({ node, src, alt, ...props }: any) =>
-            src ? <img src={src} alt={alt || ""} {...props} /> : null,
+            src ? <ImageLightbox src={src} alt={alt || ""} {...props} /> : null,
         }}
       >
         {cleaned}

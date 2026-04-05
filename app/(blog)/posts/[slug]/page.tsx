@@ -9,6 +9,8 @@ import { LikeProvider } from "@/components/post/like-context";
 import { DeletePostButton } from "@/components/post/delete-post-button";
 import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
+import { ScrollToTop } from "@/components/post/scroll-to-top";
+import { ScrollProgress } from "@/components/post/scroll-progress";
 import { CommentList } from "@/components/comment/comment-list";
 import { formatDate } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -285,6 +287,8 @@ export default async function PostPage({ params }: Props) {
           )}
         </article>
       </div>
+      <ScrollProgress />
+      <ScrollToTop />
     </LikeProvider>
   );
 }

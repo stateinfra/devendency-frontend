@@ -10,13 +10,14 @@ type PostActionsProps = {
 };
 
 type ShareItem = {
-  icon: string;
+  icon: string | null;
+  customIcon?: React.ReactNode;
   label: string;
   action: () => void;
   hoverColor: string;
 };
 
-function useShareItems(markdownContent?: string, onDone?: () => void): ShareItem[] {
+function useShareItems(markdownContent?: string, onDone?: () => void, iconSize: number = 20): ShareItem[] {
   return [
     {
       icon: "link",
@@ -41,11 +42,18 @@ function useShareItems(markdownContent?: string, onDone?: () => void): ShareItem
       },
     },
     {
-      icon: "open_in_new",
-      label: "새 탭에서 열기",
-      hoverColor: "#38bdf8",
+      icon: null,
+      customIcon: (
+        <svg viewBox="0 0 24 24" fill="currentColor" className="shrink-0" style={{ width: iconSize * 0.75, height: iconSize * 0.75 }}>
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+      ),
+      label: "X에 공유",
+      hoverColor: "#1d9bf0",
       action: () => {
-        window.open(window.location.href, "_blank");
+        const url = encodeURIComponent(window.location.href);
+        const text = encodeURIComponent(document.title);
+        window.open(`https://x.com/intent/tweet?url=${url}&text=${text}`, "_blank");
         onDone?.();
       },
     },
@@ -72,7 +80,7 @@ function ShareButtonWithRadial({
     setTimeout(() => setOpen(false), 200);
   }, []);
 
-  const items = useShareItems(markdownContent, close);
+  const items = useShareItems(markdownContent, close, iconSize);
 
   useEffect(() => {
     if (!open) return;
@@ -107,7 +115,7 @@ function ShareButtonWithRadial({
             const y = Math.sin(angle) * radius;
             return (
               <div
-                key={item.icon}
+                key={item.label}
                 className="absolute group"
                 style={{
                   left: animated ? x : 0,
@@ -128,9 +136,11 @@ function ShareButtonWithRadial({
                     "--hover-color": item.hoverColor,
                   } as React.CSSProperties}
                 >
-                  <span className="material-symbols-outlined shrink-0" style={{ fontSize: iconSize }}>
-                    {item.icon}
-                  </span>
+                  {item.customIcon ?? (
+                    <span className="material-symbols-outlined shrink-0" style={{ fontSize: iconSize }}>
+                      {item.icon}
+                    </span>
+                  )}
                   <span className="whitespace-nowrap text-[11px] font-medium max-w-0 group-hover:max-w-[120px] overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
                     {item.label}
                   </span>
