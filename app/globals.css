@@ -80,11 +80,12 @@
 }
 
 /* CodeMirror selection highlight */
-.cm-selectionBackground {
-  background-color: rgba(127, 109, 242, 0.25) !important;
-}
-.cm-focused .cm-selectionBackground {
+.cm-editor .cm-selectionBackground,
+.cm-editor.cm-focused .cm-selectionBackground,
+.cm-editor .cm-content ::selection,
+.cm-editor .cm-line ::selection {
   background-color: rgba(127, 109, 242, 0.3) !important;
+  background: rgba(127, 109, 242, 0.3) !important;
 }
 
 /* Custom scrollbar — light */
