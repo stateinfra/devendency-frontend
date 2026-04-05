@@ -157,6 +157,7 @@ const editorTheme = EditorView.theme(
         '"Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", sans-serif',
       caretColor: "#7f6df2",
       padding: "0",
+      backgroundColor: "var(--background) !important",
     },
     ".cm-cursor, .cm-dropCursor": {
       borderLeftColor: "#7f6df2",
@@ -186,6 +187,7 @@ const editorTheme = EditorView.theme(
     },
     ".cm-line": {
       padding: "1px 0",
+      backgroundColor: "var(--background)",
     },
     ".cm-codeblock-line": {
       backgroundColor: "var(--card)",
