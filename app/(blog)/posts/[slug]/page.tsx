@@ -282,6 +282,7 @@ export default async function PostPage({ params }: Props) {
 
           {!isDraft && (
             <div className="mt-8 max-w-[90%]">
+              <p className="text-sm text-slate-400 mb-4">댓글 {topComments.reduce((acc, c) => acc + 1 + (c.replies?.length || 0), 0)}개</p>
               <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
             </div>
           )}

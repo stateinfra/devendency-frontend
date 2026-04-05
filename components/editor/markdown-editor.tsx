@@ -873,7 +873,7 @@ export function MarkdownEditor({
       {/* Minimal top bar */}
       <div className="flex items-center justify-between px-5 h-14 border-b border-white/[0.06] shrink-0">
         <Link
-          href="/"
+          href={postId && initialData?.slug ? `/posts/${initialData.slug}` : "/"}
           className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-white transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
