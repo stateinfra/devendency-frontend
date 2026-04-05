@@ -855,7 +855,7 @@ export function MarkdownEditor({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-gray-50 dark:bg-[#202020]"
+      className="fixed inset-0 z-50 flex flex-col bg-background"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
