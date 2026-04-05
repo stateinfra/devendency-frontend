@@ -26,11 +26,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    const root = document.documentElement;
     if (theme === "dark") {
-      root.classList.add("dark");
+      document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     } else {
-      root.classList.remove("dark");
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
     }
     localStorage.setItem("theme", theme);
   }, [theme, mounted]);
