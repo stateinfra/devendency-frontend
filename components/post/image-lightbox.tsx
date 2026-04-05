@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { SkeletonImage } from "@/components/shared/skeleton-image";
 
 export function ImageLightbox({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <img
+      <SkeletonImage
         src={src}
         alt={alt || ""}
         {...props}

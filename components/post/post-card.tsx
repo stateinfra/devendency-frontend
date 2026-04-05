@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate, generateExcerpt } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
+import { SkeletonImage } from "@/components/shared/skeleton-image";
 
 export function PostCard({ post }: { post: PostWithRelations }) {
   const router = useRouter();
@@ -13,7 +14,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       <article className="flex flex-col gap-4 group cursor-pointer h-full">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
-          <img
+          <SkeletonImage
             src={post.coverImage || "/placeholder.svg"}
             alt={post.title}
             className="w-full h-full object-cover"
@@ -44,7 +45,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                 className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
               >
                 {post.author.image ? (
-                  <img
+                  <SkeletonImage
                     src={post.author.image}
                     alt={post.author.name || "Author"}
                     className="size-5 rounded-full object-cover"

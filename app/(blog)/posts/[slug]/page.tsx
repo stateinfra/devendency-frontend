@@ -11,6 +11,7 @@ import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
 import { ScrollToTop } from "@/components/post/scroll-to-top";
 import { ScrollProgress } from "@/components/post/scroll-progress";
+import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { CommentList } from "@/components/comment/comment-list";
 import { formatDate } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -188,7 +189,7 @@ export default async function PostPage({ params }: Props) {
           {/* 표지 이미지 */}
           {post.coverImage && (
             <div className="mb-10 rounded-2xl overflow-hidden">
-              <img
+              <SkeletonImage
                 src={post.coverImage}
                 alt={post.title}
                 className="w-full object-cover max-h-[480px]"
@@ -216,7 +217,7 @@ export default async function PostPage({ params }: Props) {
             <div className="flex items-center justify-between py-4 border-b border-white/[0.08]">
               <Link href={`/users/@${post.author.username}`} className="flex items-center gap-3 group">
                 {post.author.image ? (
-                  <img
+                  <SkeletonImage
                     src={post.author.image}
                     alt={post.author.name || "Author"}
                     className="size-10 rounded-full object-cover ring-2 ring-transparent group-hover:ring-primary/30 transition-all"

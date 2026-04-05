@@ -96,8 +96,8 @@ export function Header() {
         className="sticky top-0 z-50 w-full border-b transition-all duration-200 ease-in-out"
         style={{
           borderColor: compact ? "transparent" : "rgba(255,255,255,0.08)",
-          background: compact ? "transparent" : "rgba(38,38,38,0.8)",
-          backdropFilter: compact ? "none" : "blur(12px)",
+          background: compact ? "rgba(38,38,38,0.4)" : "rgba(38,38,38,0.8)",
+          backdropFilter: "blur(12px)",
         }}
       >
         <div
