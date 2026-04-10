@@ -153,12 +153,12 @@ function ShareButtonWithRadial({
         <button
           onClick={() => (open ? close() : setOpen(true))}
           className={`${buttonClass} relative z-10 transition-all duration-200 ${
-            open ? "text-primary border-primary/30 bg-primary/10" : ""
+            open ? "text-gray-500 dark:text-slate-300 border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/10" : ""
           }`}
           style={{ width: buttonSize, height: buttonSize }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: iconSize }}>
-            share
+          <span className="material-symbols-outlined transition-transform duration-200" style={{ fontSize: iconSize, transform: open ? "rotate(90deg)" : "rotate(0)" }}>
+            {open ? "close" : "share"}
           </span>
         </button>
       </div>
