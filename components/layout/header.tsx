@@ -93,6 +93,26 @@ export function Header() {
 
   const compact = pathname.startsWith("/posts/");
 
+  // compact 헤더: 스크롤 다운 시 숨기고, 스크롤 업 시 표시
+  const [compactHidden, setCompactHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (!compact) return;
+    function onScroll() {
+      const y = window.scrollY;
+      // 200px 이상 스크롤 & 아래로 스크롤 중이면 숨김
+      if (y > 200 && y > lastScrollY.current) {
+        setCompactHidden(true);
+      } else {
+        setCompactHidden(false);
+      }
+      lastScrollY.current = y;
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [compact]);
+
   // 홈 페이지 스크롤 위치 저장
   useEffect(() => {
     if (pathname === "/" || pathname === "") {
@@ -121,36 +141,33 @@ export function Header() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 w-full border-b transition-all duration-200 ease-in-out"
+        className="sticky top-0 z-50 w-full border-b transition-all duration-300 ease-in-out isolate"
         style={{
           borderColor: compact ? "transparent" : theme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
           background: compact ? (theme === "dark" ? "rgba(38,38,38,0.4)" : "rgba(255,255,255,0.4)") : (theme === "dark" ? "rgba(38,38,38,0.8)" : "rgba(255,255,255,0.8)"),
           backdropFilter: "blur(12px)",
+          transform: compact && compactHidden ? "translateY(-100%)" : "translateY(0)",
+          opacity: compact && compactHidden ? 0 : 1,
         }}
       >
         <div
-          className="w-full px-6 md:px-12 lg:px-16 relative transition-all duration-200 ease-in-out"
+          className="w-full px-4 sm:px-6 md:px-12 lg:px-16 relative transition-all duration-200 ease-in-out"
           style={{
-            height: compact ? 56 : 64,
+            height: compact ? 48 : 56,
             marginTop: compact ? 8 : 0,
           }}
         >
           {/* Normal 헤더 - compact일 때 페이드아웃 */}
           <div
-            className="absolute inset-0 px-6 md:px-12 lg:px-16 flex items-center justify-between transition-all duration-200 ease-in-out"
+            className="absolute inset-0 px-4 sm:px-6 md:px-12 lg:px-16 flex items-center justify-between transition-all duration-200 ease-in-out"
             style={{
               opacity: compact ? 0 : 1,
               pointerEvents: compact ? "none" : "auto",
               transform: compact ? "scale(0.95)" : "scale(1)",
             }}
           >
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="size-8 text-primary transition-transform group-hover:rotate-12">
-                <svg className="size-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor" />
-                </svg>
-              </div>
-              <h1 className="hidden md:block text-xl font-bold tracking-tight text-gray-900 dark:text-white">Devendency</h1>
+            <Link href="/" className="flex items-center group">
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">Devendency</h1>
             </Link>
 
             <div className="hidden md:flex items-center gap-2">
@@ -180,37 +197,39 @@ export function Header() {
               )}
             </div>
 
-            <div className="flex md:hidden items-center gap-1">
+            <div className="flex md:hidden items-center gap-1.5">
               <button
                 aria-label="검색"
                 onClick={openSearch}
-                className="size-10 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-600 dark:text-slate-300 transition-colors"
+                className="size-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors"
               >
-                <span className="material-symbols-outlined text-[24px]">search</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
               </button>
               <Link
                 href={session?.user ? "/dashboard/posts/new" : "/login"}
                 aria-label="글쓰기"
-                className="size-10 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-600 dark:text-slate-300 transition-colors"
+                className="size-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors"
               >
-                <span className="material-symbols-outlined text-[24px]">edit</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
               </Link>
-              {session?.user ? (
-                <UserMenu />
-              ) : (
-                <Link
-                  href="/login"
-                  className="size-10 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-600 dark:text-slate-300 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[24px]">person</span>
-                </Link>
-              )}
+              <div className="ml-1.5">
+                {session?.user ? (
+                  <UserMenu />
+                ) : (
+                  <Link
+                    href="/login"
+                    className="size-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>person</span>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Compact 헤더 - compact일 때 페이드인 (그리드 정렬) */}
           <div
-            className="absolute inset-0 px-6 md:px-12 lg:px-16 transition-all duration-200 ease-in-out"
+            className="absolute inset-0 px-4 sm:px-6 md:px-12 lg:px-16 transition-all duration-200 ease-in-out"
             style={{
               opacity: compact ? 1 : 0,
               pointerEvents: compact ? "auto" : "none",

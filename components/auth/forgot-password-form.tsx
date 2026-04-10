@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { requestPasswordReset } from "@/actions/auth";
 import Link from "next/link";
+import { Button, Input, Card } from "@/components/ds";
 
 export function ForgotPasswordForm() {
   const [loading, setLoading] = useState(false);
@@ -29,14 +30,14 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <div className="space-y-4 text-center">
-        <div className="p-4 rounded-lg bg-primary/5 border border-primary/10">
+        <Card variant="alert" padding="md">
           <p className="text-sm text-gray-600 dark:text-[#dcddde]/80">
             입력하신 이메일로 비밀번호 재설정 링크를 발송했습니다.
           </p>
           <p className="text-sm text-gray-500 dark:text-[#dcddde]/50 mt-2">
             이메일이 도착하지 않는다면 스팸함을 확인해주세요.
           </p>
-        </div>
+        </Card>
         <Link
           href="/login"
           className="text-sm text-primary hover:underline font-medium"
@@ -49,31 +50,29 @@ export function ForgotPasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          이메일
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-        />
-      </div>
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        label="이메일"
+        placeholder="you@example.com"
+        required
+      />
 
       {error && (
         <p className="text-sm text-red-400">{error}</p>
       )}
 
-      <button
+      <Button
         type="submit"
-        className="w-full h-10 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+        variant="primary"
+        size="lg"
+        loading={loading}
         disabled={loading}
+        className="w-full"
       >
-        {loading ? "발송 중..." : "비밀번호 재설정 링크 받기"}
-      </button>
+        비밀번호 재설정 링크 받기
+      </Button>
 
       <p className="text-center text-sm text-gray-500 dark:text-[#dcddde]/50">
         <Link href="/login" className="text-primary hover:underline font-medium">

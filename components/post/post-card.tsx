@@ -6,6 +6,7 @@ import { formatDate, generateExcerpt } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { useTheme } from "@/components/theme-provider";
+import { Avatar } from "@/components/ds";
 
 export function PostCard({ post }: { post: PostWithRelations }) {
   const router = useRouter();
@@ -13,7 +14,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">
-      <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-3 -m-3 transition-all duration-200 ease-in-out hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
+      <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-2 -m-2 sm:p-3 sm:-m-3 transition-all duration-200 ease-in-out hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
           {post.coverImage ? (
@@ -54,17 +55,11 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                 }}
                 className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer"
               >
-                {post.author.image ? (
-                  <SkeletonImage
-                    src={post.author.image}
-                    alt={post.author.name || "Author"}
-                    className="size-5 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="size-5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] flex items-center justify-center text-[8px] font-bold">
-                    {post.author.name?.[0]?.toUpperCase() || "A"}
-                  </div>
-                )}
+                <Avatar
+                  src={post.author.image || undefined}
+                  initial={post.author.name?.[0]?.toUpperCase() || "A"}
+                  size="xs"
+                />
                 <span className="font-medium text-gray-600 dark:text-[#dcddde]/60">
                   {post.author.name}
                 </span>

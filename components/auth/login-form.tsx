@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { checkEmailVerified } from "@/actions/auth";
 import Link from "next/link";
+import { Button, Input, Card } from "@/components/ds";
 
 export function LoginForm() {
   const router = useRouter();
@@ -47,22 +48,17 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          이메일
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-        />
-      </div>
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        label="이메일"
+        placeholder="you@example.com"
+        required
+      />
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label htmlFor="password" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
+          <label htmlFor="password" className="text-xs font-semibold text-gray-500 dark:text-[#dcddde]/70">
             비밀번호
           </label>
           <Link
@@ -72,18 +68,17 @@ export function LoginForm() {
             비밀번호를 잊으셨나요?
           </Link>
         </div>
-        <input
+        <Input
           id="password"
           name="password"
           type="password"
           placeholder="••••••"
           required
-          className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
         />
       </div>
 
       {unverifiedEmail && (
-        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+        <Card variant="alert" padding="sm">
           <p className="text-sm text-gray-500 dark:text-[#dcddde]/60 mb-2">이메일 인증이 완료되지 않았습니다.</p>
           <Link
             href={`/verify?email=${encodeURIComponent(unverifiedEmail)}`}
@@ -91,16 +86,19 @@ export function LoginForm() {
           >
             인증 페이지로 이동 →
           </Link>
-        </div>
+        </Card>
       )}
 
-      <button
+      <Button
         type="submit"
-        className="w-full h-10 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+        variant="primary"
+        size="lg"
+        loading={loading}
         disabled={loading}
+        className="w-full"
       >
-        {loading ? "로그인 중..." : "로그인"}
-      </button>
+        로그인
+      </Button>
     </form>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Skeleton } from "@/components/ds";
 
 export function SkeletonImage({
   className = "",
@@ -11,7 +12,7 @@ export function SkeletonImage({
   return (
     <div className={`relative ${className}`}>
       {!loaded && (
-        <div className="absolute inset-0 bg-black/[0.08] dark:bg-white/[0.06] animate-pulse rounded-[inherit]" />
+        <Skeleton variant="rect" className="absolute inset-0 rounded-[inherit] aspect-auto" />
       )}
       <img
         {...props}

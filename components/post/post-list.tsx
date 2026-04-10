@@ -2,6 +2,7 @@
 
 import { PostCard } from "@/components/post/post-card";
 import { Pagination } from "@/components/shared/pagination";
+import { EmptyState } from "@/components/ds";
 import type { PostWithRelations } from "@/types";
 
 type PostListProps = {
@@ -21,16 +22,13 @@ export function PostList({
 }: PostListProps) {
   if (posts.length === 0) {
     return (
-      <div className="text-center py-16">
-        <span className="material-symbols-outlined text-[48px] text-gray-300 dark:text-[#dcddde]/20 mb-4 block">article</span>
-        <p className="text-gray-400 dark:text-[#dcddde]/40">아직 작성된 글이 없습니다.</p>
-      </div>
+      <EmptyState icon="article" message="아직 작성된 글이 없습니다." className="py-16" />
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className={singleColumn ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"}>
+      <div className={singleColumn ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8"}>
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

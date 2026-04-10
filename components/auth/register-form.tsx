@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { registerUser } from "@/actions/auth";
 import { toast } from "sonner";
+import { Button, Input } from "@/components/ds";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -26,76 +27,53 @@ export function RegisterForm() {
     }
   }
 
-  const inputClass = "w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors";
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="username" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          사용자명
-        </label>
-        <div className="flex">
-          <span className="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-black/[0.06] dark:border-white/[0.06] bg-black/[0.06] dark:bg-white/[0.06] text-sm text-gray-400 dark:text-[#dcddde]/40">
-            @
-          </span>
-          <input
-            id="username"
-            name="username"
-            placeholder="menting"
-            required
-            minLength={3}
-            maxLength={20}
-            pattern="[a-zA-Z0-9_-]+"
-            className="w-full h-10 px-3 rounded-r-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="name" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          이름
-        </label>
-        <input
-          id="name"
-          name="name"
-          placeholder="홍길동"
-          required
-          className={inputClass}
-        />
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          이메일
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          className={inputClass}
-        />
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="password" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-          비밀번호
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="6자 이상"
-          required
-          minLength={6}
-          className={inputClass}
-        />
-      </div>
-      <button
+      <Input
+        id="username"
+        name="username"
+        label="사용자명"
+        prefix="@"
+        placeholder="menting"
+        required
+        minLength={3}
+        maxLength={20}
+        pattern="[a-zA-Z0-9_-]+"
+      />
+      <Input
+        id="name"
+        name="name"
+        label="이름"
+        placeholder="홍길동"
+        required
+      />
+      <Input
+        id="email"
+        name="email"
+        type="email"
+        label="이메일"
+        placeholder="you@example.com"
+        required
+      />
+      <Input
+        id="password"
+        name="password"
+        type="password"
+        label="비밀번호"
+        placeholder="6자 이상"
+        required
+        minLength={6}
+      />
+      <Button
         type="submit"
-        className="w-full h-10 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+        variant="primary"
+        size="lg"
+        loading={loading}
         disabled={loading}
+        className="w-full"
       >
-        {loading ? "가입 중..." : "회원가입"}
-      </button>
+        회원가입
+      </Button>
     </form>
   );
 }

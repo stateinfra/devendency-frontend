@@ -55,7 +55,7 @@
   --primary-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.08);
   --ring: #7f6df2;
-  --active-line: rgba(0, 0, 0, 0.06);
+  --active-line: rgba(0, 0, 0, 0.025);
 }
 :root.dark, .dark {
   --background: #202020;
@@ -452,3 +452,13 @@
 .dark .hljs-section { color: #79c0ff; font-weight: bold; }
 .dark .hljs-addition { color: #aff5b4; background: rgba(46, 160, 67, 0.1); }
 .dark .hljs-deletion { color: #ffdcd7; background: rgba(248, 81, 73, 0.1); }
+
+@media (max-width: 480px) {
+  .obsidian-md pre code {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+  .obsidian-md img {
+    margin: 1rem auto;
+  }
+}

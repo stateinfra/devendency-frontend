@@ -83,7 +83,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     postResults,
     [{ postCount }],
     draftCountResult,
-    [{ totalLikes }],
     [{ followerCount }],
     [{ followingCount }],
     userSeriesList,
@@ -104,7 +103,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     isOwnProfile
       ? db.select({ draftCount: count() }).from(posts).where(and(eq(posts.authorId, user.id), eq(posts.published, false)))
       : Promise.resolve([{ draftCount: 0 }]),
-    db.select({ totalLikes: count() }).from(likes).innerJoin(posts, eq(likes.postId, posts.id)).where(eq(posts.authorId, user.id)),
     db.select({ followerCount: count() }).from(follows).where(eq(follows.followingId, user.id)),
     db.select({ followingCount: count() }).from(follows).where(eq(follows.followerId, user.id)),
     db.query.series.findMany({
@@ -142,19 +140,19 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         : (q ? `"${q}"에 대한 검색 결과가 없습니다.` : "아직 작성한 글이 없습니다.");
 
   return (
-    <div className="w-full max-w-[768px] mx-auto py-12 md:py-16">
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
+    <div className="w-full max-w-[768px] mx-auto py-6 sm:py-12 md:py-16">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-8 mb-6 sm:mb-12">
         {user.image ? (
-          <img src={user.image} alt={user.name || "User"} className="size-28 md:size-36 rounded-full object-cover flex-shrink-0 ring-2 ring-black/10 dark:ring-white/10" />
+          <img src={user.image} alt={user.name || "User"} className="size-20 sm:size-28 md:size-36 rounded-full object-cover flex-shrink-0 ring-2 ring-black/10 dark:ring-white/10" />
         ) : (
-          <div className="size-28 md:size-36 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-4xl font-bold text-gray-400 dark:text-slate-400 flex-shrink-0">
+          <div className="size-20 sm:size-28 md:size-36 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-2xl sm:text-4xl font-bold text-gray-400 dark:text-slate-400 flex-shrink-0">
             {user.name?.[0]?.toUpperCase() || "?"}
           </div>
         )}
         <div className="flex-1 text-center md:text-left space-y-4">
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
               <span className="text-slate-500 text-sm">@{user.username}</span>
             </div>
             {!isOwnProfile && session?.user && (
@@ -167,7 +165,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             postCount={postCount}
             followerCount={followerCount}
             followingCount={followingCount}
-            totalLikes={totalLikes}
           />
         </div>
       </div>

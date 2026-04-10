@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
+import { Avatar } from "@/components/ds";
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -31,19 +32,13 @@ export function UserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="size-9 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all focus:outline-none"
+        className="rounded-full cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all focus:outline-none"
       >
-        {session.user.image ? (
-          <img
-            alt={session.user.name || "User"}
-            className="size-full object-cover"
-            src={session.user.image}
-          />
-        ) : (
-          <span className="size-full flex items-center justify-center text-sm font-bold text-gray-600 dark:text-slate-300">
-            {initials}
-          </span>
-        )}
+        <Avatar
+          src={session.user.image || undefined}
+          initial={initials}
+          size="md"
+        />
       </button>
 
       {open && (

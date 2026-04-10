@@ -12,6 +12,7 @@ import {
   changeUserRole,
 } from "@/actions/admin";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
+import { Button, Input, Badge, StatusDot } from "@/components/ds";
 
 type User = {
   id: string;
@@ -33,11 +34,11 @@ type ModalAction = {
   newRole?: AssignableRole;
 };
 
-function roleBadgeClass(role: string) {
-  if (role === "SUPER_ADMIN") return "bg-amber-500/10 text-amber-400";
-  if (role === "ADMIN") return "bg-primary/10 text-primary";
-  if (role === "WRITER") return "bg-emerald-500/10 text-emerald-400";
-  return "bg-black/[0.06] dark:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/60";
+function roleBadgeVariant(role: string): "superadmin" | "admin" | "writer" | "neutral" {
+  if (role === "SUPER_ADMIN") return "superadmin";
+  if (role === "ADMIN") return "admin";
+  if (role === "WRITER") return "writer";
+  return "neutral";
 }
 
 export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
@@ -178,19 +179,15 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   return (
     <div>
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <input
-          type="text"
+        <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="이름, 이메일, 사용자명 검색..."
-          className="flex-1 h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          className="h-10 px-4 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors"
-        >
+        <Button type="submit">
           검색
-        </button>
+        </Button>
       </form>
 
       <p className="text-sm text-gray-500 dark:text-[#dcddde]/50 mb-4">총 {total}명</p>
@@ -227,8 +224,10 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                   <td className="px-4 py-3">
                     {isSuperAdmin && user.role !== "SUPER_ADMIN" ? (
                       <div className="relative group inline-block">
-                        <button className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium cursor-pointer transition-colors ${roleBadgeClass(user.role)}`}>
-                          {user.role}
+                        <button className="inline-flex items-center gap-1 cursor-pointer">
+                          <Badge variant={roleBadgeVariant(user.role)}>
+                            {user.role}
+                          </Badge>
                           <span className="material-symbols-outlined text-[12px] opacity-50">
                             expand_more
                           </span>
@@ -250,21 +249,18 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                         </div>
                       </div>
                     ) : (
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${roleBadgeClass(user.role)}`}>
+                      <Badge variant={roleBadgeVariant(user.role)}>
                         {user.role}
-                      </span>
+                      </Badge>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {user.suspended ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-red-400">
-                        <span className="material-symbols-outlined text-[14px]">block</span>
-                        정지됨
-                      </span>
+                      <StatusDot status="danger" label="정지됨" />
                     ) : !user.emailVerified ? (
-                      <span className="text-xs text-yellow-400">미인증</span>
+                      <StatusDot status="warning" label="미인증" />
                     ) : (
-                      <span className="text-xs text-emerald-400">정상</span>
+                      <StatusDot status="success" label="정상" />
                     )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 text-xs">
@@ -275,33 +271,40 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
                         onClick={() => setModal({ type: "suspend", user })}
                         title={user.suspended ? "정지 해제" : "정지"}
-                        className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           {user.suspended ? "lock_open" : "block"}
                         </span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
                         onClick={() => setModal({ type: "password", user })}
                         title="비밀번호 변경 메일"
-                        className="p-1.5 rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           mail
                         </span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
                         onClick={() => setModal({ type: "delete", user })}
                         title="삭제"
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 dark:text-[#dcddde]/50 hover:text-red-400 transition-colors"
+                        className="hover:bg-red-500/10 hover:text-red-400"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           delete
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -320,23 +323,25 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-4">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             이전
-          </button>
+          </Button>
           <span className="text-sm text-gray-400 dark:text-[#dcddde]/40">
             {page} / {totalPages}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             다음
-          </button>
+          </Button>
         </div>
       )}
 

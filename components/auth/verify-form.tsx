@@ -4,6 +4,7 @@ import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { verifyEmail, resendVerificationCode } from "@/actions/auth";
 import { toast } from "sonner";
+import { Button } from "@/components/ds";
 
 export function VerifyForm({ email }: { email: string }) {
   const router = useRouter();
@@ -104,24 +105,28 @@ export function VerifyForm({ email }: { email: string }) {
         ))}
       </div>
 
-      <button
+      <Button
         onClick={() => handleSubmit(code.join(""))}
         disabled={isPending || code.some((c) => !c)}
-        className="w-full h-10 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        variant="primary"
+        size="lg"
+        loading={isPending}
+        className="w-full"
       >
-        {isPending ? "확인 중..." : "인증하기"}
-      </button>
+        인증하기
+      </Button>
 
       <div className="text-center">
-        <button
+        <Button
           onClick={handleResend}
           disabled={isPending || cooldown > 0}
-          className="text-sm text-gray-400 dark:text-[#dcddde]/40 hover:text-primary transition-colors disabled:cursor-not-allowed"
+          variant="ghost"
+          size="sm"
         >
           {cooldown > 0
             ? `재발송 (${cooldown}초)`
             : "인증 코드 재발송"}
-        </button>
+        </Button>
       </div>
     </div>
   );

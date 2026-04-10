@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateProfile } from "@/actions/profile";
 import { toast } from "sonner";
 import { AvatarUpload } from "@/components/settings/avatar-upload";
+import { Button, Input, Textarea, Card } from "@/components/ds";
 
 type SettingsFormProps = {
   initialData: {
@@ -41,78 +42,48 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     });
   }
 
-  const inputClass =
-    "w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors";
-
   return (
     <div className="space-y-4">
       {/* 프로필 사진 카드 */}
-      <div className="p-6 bg-card rounded-xl border border-black/[0.08] dark:border-white/[0.08]">
+      <Card variant="settings" padding="lg">
         <AvatarUpload
           currentImage={initialData.image}
           username={initialData.username || initialData.name || ""}
         />
-      </div>
+      </Card>
 
       {/* 프로필 정보 카드 */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 p-6 bg-card rounded-xl border border-black/[0.08] dark:border-white/[0.08]"
-      >
-        <div className="space-y-2">
-          <label htmlFor="username" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-            사용자명
-          </label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-black/[0.06] dark:border-white/[0.06] bg-black/[0.06] dark:bg-white/[0.06] text-sm text-gray-400 dark:text-[#dcddde]/40">
-              @
-            </span>
-            <input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              minLength={3}
-              maxLength={20}
-              pattern="[a-zA-Z0-9_-]+"
-              className="w-full h-10 px-3 rounded-r-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-            />
-          </div>
-        </div>
+      <Card variant="settings" padding="lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="사용자명"
+            prefix="@"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            minLength={3}
+            maxLength={20}
+            pattern="[a-zA-Z0-9_-]+"
+          />
 
-        <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-            이름
-          </label>
-          <input
-            id="name"
+          <Input
+            label="이름"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={inputClass}
           />
-        </div>
 
-        <div className="space-y-2">
-          <label htmlFor="bio" className="text-sm font-medium text-gray-500 dark:text-[#dcddde]/70">
-            소개
-          </label>
-          <textarea
-            id="bio"
+          <Textarea
+            label="소개"
             placeholder="자기소개를 입력하세요"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={4}
-            className="w-full px-3 py-2 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
           />
-        </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="h-10 px-6 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {isPending ? "저장 중..." : "저장"}
-        </button>
-      </form>
+          <Button type="submit" loading={isPending} size="lg">
+            {isPending ? "저장 중..." : "저장"}
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 }

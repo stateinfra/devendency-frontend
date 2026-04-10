@@ -40,7 +40,7 @@ export default async function TagPage({ params, searchParams }: Props) {
   if (ids.length === 0) {
     return (
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">#{tag.name}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-8">#{tag.name}</h1>
         <PostList posts={[]} currentPage={1} totalPages={0} baseUrl={`/tags/${slug}`} />
       </div>
     );
@@ -73,12 +73,13 @@ export default async function TagPage({ params, searchParams }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">#{tag.name}</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-8">#{tag.name}</h1>
       <PostList
         posts={postsWithCounts as unknown as PostWithRelations[]}
         currentPage={page}
         totalPages={totalPages}
         baseUrl={`/tags/${slug}`}
+        singleColumn
       />
     </div>
   );

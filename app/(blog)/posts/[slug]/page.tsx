@@ -158,15 +158,15 @@ export default async function PostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative max-w-[1200px] mx-auto">
-        <aside className="hidden lg:block lg:col-span-3 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 relative max-w-[1200px] mx-auto">
+        <aside className="hidden lg:block lg:col-span-3 relative z-[60]">
           <div className="sticky top-24 space-y-8">
             {!isDraft && <PostActions variant="sidebar" markdownContent={post.content} />}
             <TableOfContents content={post.content} />
           </div>
         </aside>
 
-        <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full">
+        <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full relative">
           {isDraft && (
             <div className="mb-6 px-4 py-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800/40 text-yellow-700 dark:text-yellow-300 text-sm flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">edit_note</span>
@@ -239,13 +239,12 @@ export default async function PostPage({ params }: Props) {
                 </div>
               </Link>
               {isAuthor && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 [&>*]:shrink-0 relative z-[60]">
                   <Link
                     href={`/dashboard/posts/${post.id}/edit`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-transparent text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all leading-none box-border"
                   >
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
-                    수정
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, width: 18, height: 18, lineHeight: "18px" }}>edit</span>
                   </Link>
                   <DeletePostButton postId={post.id} />
                 </div>

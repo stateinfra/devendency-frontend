@@ -51,7 +51,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className="font-sans antialiased selection:bg-primary/20 selection:text-primary">
+      <body className="font-sans antialiased selection:bg-primary/20 selection:text-primary overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

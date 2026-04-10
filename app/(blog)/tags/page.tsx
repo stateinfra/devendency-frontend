@@ -33,7 +33,7 @@ export default async function TagsPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-10">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-[#dcddde] mb-1">태그</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#dcddde] mb-1">태그</h1>
         <p className="text-sm text-gray-500 dark:text-[#dcddde]/40">{allTags.length}개의 태그</p>
       </div>
       {allTags.length === 0 ? (

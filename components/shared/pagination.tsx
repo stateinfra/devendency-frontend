@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ds";
 
 type PaginationProps = {
   currentPage: number;
@@ -17,32 +18,30 @@ export function Pagination({
   return (
     <div className="pt-6 flex items-center justify-center gap-1">
       {currentPage > 1 && (
-        <Link
-          href={`${baseUrl}${separator}page=${currentPage - 1}`}
-          className="size-10 flex items-center justify-center rounded-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-400 dark:text-[#dcddde]/50 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+        <Link href={`${baseUrl}${separator}page=${currentPage - 1}`}>
+          <Button variant="ghost" size="sm" pill iconOnly>
+            <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+          </Button>
         </Link>
       )}
       {pages.map((page) => (
-        <Link
-          key={page}
-          href={`${baseUrl}${separator}page=${page}`}
-          className={`size-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
-            page === currentPage
-              ? "bg-primary text-white"
-              : "text-[#dcddde]/50 hover:bg-white/[0.06]"
-          }`}
-        >
-          {page}
+        <Link key={page} href={`${baseUrl}${separator}page=${page}`}>
+          <Button
+            variant={page === currentPage ? "primary" : "ghost"}
+            size="sm"
+            pill
+            iconOnly
+            className={page !== currentPage ? "text-[#dcddde]/50" : ""}
+          >
+            {page}
+          </Button>
         </Link>
       ))}
       {currentPage < totalPages && (
-        <Link
-          href={`${baseUrl}${separator}page=${currentPage + 1}`}
-          className="size-10 flex items-center justify-center rounded-full hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-400 dark:text-[#dcddde]/50 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+        <Link href={`${baseUrl}${separator}page=${currentPage + 1}`}>
+          <Button variant="ghost" size="sm" pill iconOnly>
+            <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+          </Button>
         </Link>
       )}
     </div>

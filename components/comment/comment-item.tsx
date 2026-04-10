@@ -6,6 +6,7 @@ import { deleteComment } from "@/actions/comment";
 import { formatRelativeDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
+import { Avatar, Button } from "@/components/ds";
 
 type CommentItemProps = {
   comment: {
@@ -46,17 +47,12 @@ export function CommentItem({
   return (
     <div className="space-y-3">
       <div className="flex gap-3">
-        {comment.author.image ? (
-          <img
-            src={comment.author.image}
-            alt={comment.author.name || "User"}
-            className="size-8 rounded-full object-cover flex-shrink-0"
-          />
-        ) : (
-          <div className="size-8 rounded-full bg-black/[0.06] dark:bg-white/[0.08] flex items-center justify-center text-xs font-bold text-gray-500 dark:text-[#dcddde]/60 flex-shrink-0">
-            {comment.author.name?.[0]?.toUpperCase() || "U"}
-          </div>
-        )}
+        <Avatar
+          src={comment.author.image || undefined}
+          initial={comment.author.name?.[0]?.toUpperCase() || "U"}
+          size="sm"
+          className="flex-shrink-0"
+        />
         <div className="flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-gray-900 dark:text-[#dcddde]">
@@ -71,24 +67,28 @@ export function CommentItem({
           </p>
           <div className="flex gap-2 pt-1">
             {!isReply && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowReply(!showReply)}
-                className="flex items-center gap-1 text-xs text-gray-400 dark:text-[#dcddde]/30 hover:text-primary transition-colors"
+                className="text-xs text-gray-400 dark:text-[#dcddde]/30 hover:text-primary"
               >
                 <span className="material-symbols-outlined text-[14px]">reply</span>
                 답글
-              </button>
+              </Button>
             )}
             {currentUserId === comment.author.id && (
               <>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowDeleteModal(true)}
                   disabled={isPending}
-                  className="flex items-center gap-1 text-xs text-gray-400 dark:text-[#dcddde]/30 hover:text-red-500 transition-colors disabled:opacity-50"
+                  className="text-xs text-gray-400 dark:text-[#dcddde]/30 hover:text-red-500"
                 >
                   <span className="material-symbols-outlined text-[14px]">delete</span>
                   삭제
-                </button>
+                </Button>
                 <ConfirmModal
                   open={showDeleteModal}
                   onClose={() => setShowDeleteModal(false)}
@@ -113,7 +113,7 @@ export function CommentItem({
       </div>
 
       {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-11 space-y-3 border-l-2 border-black/[0.06] dark:border-white/[0.06] pl-4">
+        <div className="ml-4 sm:ml-11 space-y-3 border-l-2 border-black/[0.06] dark:border-white/[0.06] pl-3 sm:pl-4">
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}

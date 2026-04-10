@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { createComment } from "@/actions/comment";
 import { toast } from "sonner";
+import { Button, Textarea } from "@/components/ds";
 
 type CommentFormProps = {
   postId: string;
@@ -35,20 +36,20 @@ export function CommentForm({ postId, parentId, onSuccess }: CommentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <textarea
+      <Textarea
         placeholder="댓글을 작성해주세요..."
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="w-full px-4 py-3 rounded-xl border border-black/[0.1] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none transition-colors"
       />
-      <button
+      <Button
         type="submit"
-        disabled={isPending || !content.trim()}
-        className="px-4 py-2 rounded-full bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        pill
+        disabled={!content.trim()}
+        loading={isPending}
       >
         {isPending ? "작성 중..." : "댓글 작성"}
-      </button>
+      </Button>
     </form>
   );
 }

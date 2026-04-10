@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { getPosts, adminDeletePost } from "@/actions/admin";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import Link from "next/link";
+import { Button, Input, Badge } from "@/components/ds";
 
 type Post = {
   id: string;
@@ -65,19 +66,15 @@ export function PostManagement() {
   return (
     <div>
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-        <input
-          type="text"
+        <Input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="제목, 작성자 검색..."
-          className="flex-1 h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          className="h-10 px-4 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors"
-        >
+        <Button type="submit">
           검색
-        </button>
+        </Button>
       </form>
 
       <p className="text-sm text-gray-500 dark:text-[#dcddde]/50 mb-4">
@@ -118,9 +115,9 @@ export function PostManagement() {
                   </td>
                   <td className="px-4 py-3">
                     {post.published ? (
-                      <span className="text-xs text-emerald-400">공개</span>
+                      <Badge variant="success">공개</Badge>
                     ) : (
-                      <span className="text-xs text-yellow-400">비공개</span>
+                      <Badge variant="warning">비공개</Badge>
                     )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 dark:text-[#dcddde]/50 text-xs">
@@ -131,15 +128,18 @@ export function PostManagement() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
                         onClick={() => setDeleteTarget(post)}
                         title="삭제"
-                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-gray-500 dark:text-[#dcddde]/50 hover:text-red-400 transition-colors"
+                        className="hover:bg-red-500/10 hover:text-red-400"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           delete
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -158,23 +158,25 @@ export function PostManagement() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-4">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             이전
-          </button>
+          </Button>
           <span className="text-sm text-gray-400 dark:text-[#dcddde]/40">
             {page} / {totalPages}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="h-8 px-3 rounded-lg text-sm text-gray-500 dark:text-[#dcddde]/60 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] disabled:opacity-30 transition-colors"
           >
             다음
-          </button>
+          </Button>
         </div>
       )}
 
