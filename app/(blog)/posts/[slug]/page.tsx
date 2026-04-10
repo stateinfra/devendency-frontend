@@ -281,7 +281,7 @@ export default async function PostPage({ params }: Props) {
           )}
 
           {!isDraft && (
-            <div className="mt-8 max-w-[90%]">
+            <div className="mt-8 w-full">
               <CommentList postId={post.id} comments={topComments} currentUserId={session?.user?.id} />
             </div>
           )}
