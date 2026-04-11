@@ -13,8 +13,8 @@ export function DeletePostButton({ postId }: { postId: string }) {
   const [holding, setHolding] = useState(false);
   const [progress, setProgress] = useState(0);
   const router = useRouter();
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const rafRef = useRef<number>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const rafRef = useRef<number>(undefined);
   const startTimeRef = useRef(0);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
