@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
 import { isAdmin } from "@/lib/db/helpers";
 import slugify from "slugify";
-import { generateExcerpt } from "@/lib/utils";
+import { generateExcerpt, extractFirstImage } from "@/lib/utils";
 import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -180,7 +180,7 @@ export async function createPost(formData: FormData) {
     published,
   } = parsed.data;
   const content = await processContentImages(rawContent, session.user.id);
-  const coverImage = (formData.get("coverImage") as string) || null;
+  const coverImage = (formData.get("coverImage") as string) || extractFirstImage(content) || null;
 
   const finalSlug = crypto.randomUUID();
 
@@ -292,7 +292,7 @@ export async function updatePost(postId: string, formData: FormData) {
   const coverImageRaw = formData.get("coverImage") as string;
   // 빈 문자열이면 제거, URL이면 유지, 필드 없으면 기존 값 유지
   const coverImage =
-    coverImageRaw === "" ? null : coverImageRaw || post.coverImage;
+    coverImageRaw === "" ? null : coverImageRaw || post.coverImage || extractFirstImage(content) || null;
 
   const tagConnections = parsedTagNames?.length
     ? await findOrCreateTags(parsedTagNames)

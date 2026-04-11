@@ -13,6 +13,11 @@ export function formatRelativeDate(date: Date | string) {
   return formatDistanceToNow(new Date(date), { addSuffix: true, locale: ko });
 }
 
+export function extractFirstImage(content: string): string | null {
+  const match = content.match(/!\[[^\]]*\]\((\S+?)\)/);
+  return match ? match[1] : null;
+}
+
 export function generateExcerpt(content: string, maxLength = 200): string {
   const plainText = content
     .replace(/!\[[^\]]*\]\([^)]*\)/g, "")      // images

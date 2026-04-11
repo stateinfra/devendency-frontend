@@ -13,7 +13,7 @@ import { ScrollToTop } from "@/components/post/scroll-to-top";
 import { ScrollProgress } from "@/components/post/scroll-progress";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { CommentList } from "@/components/comment/comment-list";
-import { formatDate } from "@/lib/utils";
+import { formatDate, extractFirstImage } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: eq(posts.slug, slug),
     columns: {
       title: true,
+      content: true,
       excerpt: true,
       coverImage: true,
       publishedAt: true,
@@ -41,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "글을 찾을 수 없습니다" };
 
   const url = `${SITE_CONFIG.url}/posts/${slug}`;
+  const ogImage = post.coverImage || extractFirstImage(post.content || "");
 
   return {
     title: post.title,
@@ -57,15 +59,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: post.updatedAt?.toISOString(),
       authors: post.author?.name ? [post.author.name] : undefined,
       tags: post.tags?.map(({ tag }) => tag.name),
-      ...(post.coverImage
-        ? { images: [{ url: post.coverImage, alt: post.title }] }
+      ...(ogImage
+        ? { images: [{ url: ogImage, alt: post.title }] }
         : {}),
     },
     twitter: {
-      card: post.coverImage ? "summary_large_image" : "summary",
+      card: ogImage ? "summary_large_image" : "summary",
       title: post.title,
       description: post.excerpt || undefined,
-      ...(post.coverImage ? { images: [post.coverImage] } : {}),
+      ...(ogImage ? { images: [ogImage] } : {}),
     },
   };
 }

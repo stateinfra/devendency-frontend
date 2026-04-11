@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, generateExcerpt } from "@/lib/utils";
+import { formatDate, generateExcerpt, extractFirstImage } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { useTheme } from "@/components/theme-provider";
@@ -11,15 +11,16 @@ import { Avatar } from "@/components/ds";
 export function PostCard({ post }: { post: PostWithRelations }) {
   const router = useRouter();
   const { theme } = useTheme();
+  const thumbnail = post.coverImage || extractFirstImage(post.content || "");
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">
       <article className="flex flex-col gap-4 group cursor-pointer h-full rounded-xl p-2 -m-2 sm:p-3 sm:-m-3 transition-all duration-200 ease-in-out hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
         {/* 표지 이미지 */}
         <div className="overflow-hidden rounded-lg aspect-[16/9]">
-          {post.coverImage ? (
+          {thumbnail ? (
             <SkeletonImage
-              src={post.coverImage}
+              src={thumbnail}
               alt={post.title}
               className="w-full h-full object-cover"
             />
