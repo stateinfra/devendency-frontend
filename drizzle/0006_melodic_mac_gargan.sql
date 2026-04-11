@@ -1,0 +1,1 @@
+ALTER TABLE "Post" ADD COLUMN "isAnnouncement" boolean DEFAULT false NOT NULL;

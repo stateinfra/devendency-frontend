@@ -34,14 +34,13 @@ type ModalAction = {
   newRole?: AssignableRole;
 };
 
-function roleBadgeVariant(role: string): "superadmin" | "admin" | "writer" | "neutral" {
-  if (role === "SUPER_ADMIN") return "superadmin";
+function roleBadgeVariant(role: string): "admin" | "writer" | "neutral" {
   if (role === "ADMIN") return "admin";
   if (role === "WRITER") return "writer";
   return "neutral";
 }
 
-export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -222,7 +221,7 @@ export function UserManagement({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {isSuperAdmin && user.role !== "SUPER_ADMIN" ? (
+                    {true ? (
                       <div className="relative group inline-block">
                         <button className="inline-flex items-center gap-1 cursor-pointer">
                           <Badge variant={roleBadgeVariant(user.role)}>

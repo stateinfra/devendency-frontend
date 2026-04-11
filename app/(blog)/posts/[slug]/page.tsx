@@ -7,6 +7,7 @@ import { PostContent } from "@/components/post/post-content";
 import { PostActions } from "@/components/post/post-actions";
 import { LikeProvider } from "@/components/post/like-context";
 import { DeletePostButton } from "@/components/post/delete-post-button";
+import { AnnouncementToggle } from "@/components/post/announcement-toggle";
 import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
 import { ScrollToTop } from "@/components/post/scroll-to-top";
@@ -124,6 +125,7 @@ export default async function PostPage({ params }: Props) {
 
   const liked = !!likedRow;
   const isAuthor = session?.user?.id === post.authorId;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const isDraft = !post.published;
 
@@ -240,15 +242,22 @@ export default async function PostPage({ params }: Props) {
                   </div>
                 </div>
               </Link>
-              {isAuthor && (
+              {(isAuthor || isAdmin) && (
                 <div className="flex items-center gap-1 [&>*]:shrink-0 relative z-[60]">
-                  <Link
-                    href={`/dashboard/posts/${post.id}/edit`}
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-transparent text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all leading-none box-border"
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: 18, width: 18, height: 18, lineHeight: "18px" }}>edit</span>
-                  </Link>
-                  <DeletePostButton postId={post.id} />
+                  {isAdmin && (
+                    <AnnouncementToggle postId={post.id} initialIsAnnouncement={post.isAnnouncement} />
+                  )}
+                  {isAuthor && (
+                    <>
+                      <Link
+                        href={`/dashboard/posts/${post.id}/edit`}
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-transparent text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all leading-none box-border"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, width: 18, height: 18, lineHeight: "18px" }}>edit</span>
+                      </Link>
+                      <DeletePostButton postId={post.id} />
+                    </>
+                  )}
                 </div>
               )}
             </div>

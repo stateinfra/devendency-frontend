@@ -10,7 +10,7 @@ const tabItems = [
   { key: "posts", label: "게시글 관리", icon: "article" },
 ];
 
-export function AdminPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+export function AdminPanel() {
   const [activeTab, setActiveTab] = useState("users");
 
   return (
@@ -23,7 +23,7 @@ export function AdminPanel({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         className="mb-6"
       />
 
-      {activeTab === "users" && <UserManagement isSuperAdmin={isSuperAdmin} />}
+      {activeTab === "users" && <UserManagement />}
       {activeTab === "posts" && <PostManagement />}
     </div>
   );

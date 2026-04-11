@@ -491,7 +491,6 @@ export default function DesignSystemPage() {
           </ComponentCard>
           <ComponentCard title="Admin 역할 뱃지">
             <div className="flex flex-wrap gap-2">
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-semibold">SUPER_ADMIN</span>
               <span className="px-2.5 py-1 rounded-full bg-[#7f6df2]/10 text-[#7f6df2] text-xs font-semibold">ADMIN</span>
               <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold">WRITER</span>
               <span className="px-2.5 py-1 rounded-full bg-black/[0.06] dark:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50 text-xs font-semibold">USER</span>

@@ -27,11 +27,11 @@ export default async function HomePage({ searchParams }: Props) {
       db
         .select({ postId: posts.id })
         .from(posts)
-        .where(eq(posts.published, true))
+        .where(and(eq(posts.published, true), eq(posts.isAnnouncement, false)))
         .orderBy(desc(likeCountExpr))
         .limit(POSTS_PER_PAGE)
         .offset((page - 1) * POSTS_PER_PAGE),
-      db.select({ total: count() }).from(posts).where(eq(posts.published, true)),
+      db.select({ total: count() }).from(posts).where(and(eq(posts.published, true), eq(posts.isAnnouncement, false))),
     ]);
 
     const totalPages = Math.ceil(total / POSTS_PER_PAGE);
@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: Props) {
   }
 
   // ── latest / following 탭 ──
-  let whereCondition = eq(posts.published, true);
+  let whereCondition = and(eq(posts.published, true), eq(posts.isAnnouncement, false))!;
 
   if (tab === "following" && session?.user?.id) {
     const following = await db.query.follows.findMany({
@@ -83,6 +83,7 @@ export default async function HomePage({ searchParams }: Props) {
     if (followingIds.length > 0) {
       whereCondition = and(
         eq(posts.published, true),
+        eq(posts.isAnnouncement, false),
         inArray(posts.authorId, followingIds),
       )!;
     } else {

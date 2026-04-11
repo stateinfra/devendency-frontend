@@ -15,7 +15,7 @@ type BadgeVariant =
   | "neutral"
   | "admin"
   | "writer"
-  | "superadmin";
+;
 
 type BadgeSize = "sm" | "md";
 
@@ -33,7 +33,6 @@ const variantStyles: Record<BadgeVariant, string> = {
   danger: "bg-[#ef4444]/10 text-[#ef4444]",
   info: "bg-[#3b82f6]/10 text-[#3b82f6]",
   neutral: "bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-[#dcddde]/50",
-  superadmin: "bg-amber-500/10 text-amber-400",
   admin: "bg-[#7f6df2]/10 text-[#7f6df2]",
   writer: "bg-emerald-500/10 text-emerald-400",
 };

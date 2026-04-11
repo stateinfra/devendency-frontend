@@ -48,6 +48,9 @@ export const RATE_LIMITS = {
   upload:       { limit: 20, windowMs: 60 * 60 * 1000 },      // 20/hr
   updateProfile:{ limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
   updateAvatar: { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
+  updateEmail:  { limit: 5,  windowMs: 60 * 60 * 1000 },      // 5/hr
+  resendVerification: { limit: 3, windowMs: 10 * 60 * 1000 }, // 3/10min
+  verifyEmailSettings: { limit: 5, windowMs: 10 * 60 * 1000 },// 5/10min
   deleteAccount:{ limit: 3,  windowMs: 60 * 60 * 1000 },      // 3/hr
 } as const;
 

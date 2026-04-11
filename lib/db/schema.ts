@@ -16,7 +16,6 @@ import {
 export const roleEnum = pgEnum("Role", [
   "WRITER",
   "ADMIN",
-  "SUPER_ADMIN",
 ]);
 
 // ── User ──
@@ -106,6 +105,7 @@ export const posts = pgTable(
       .references(() => users.id),
     seriesId: uuid("seriesId").references(() => series.id, { onDelete: "set null" }),
     seriesOrder: integer("seriesOrder"),
+    isAnnouncement: boolean("isAnnouncement").default(false).notNull(),
     createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updatedAt", { mode: "date" }).defaultNow().notNull(),
   },

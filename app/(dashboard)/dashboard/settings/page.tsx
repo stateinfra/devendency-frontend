@@ -4,6 +4,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/settings/settings-form";
+import { EmailSection } from "@/components/settings/email-section";
 import { DeleteAccountSection } from "@/components/settings/delete-account-section";
 import type { Metadata } from "next";
 
@@ -17,7 +18,7 @@ export default async function SettingsPage() {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { username: true, name: true, bio: true, image: true, password: true, deletionScheduledAt: true },
+    columns: { username: true, name: true, email: true, bio: true, image: true, password: true, emailVerified: true, deletionScheduledAt: true },
   });
 
   return (
@@ -30,6 +31,10 @@ export default async function SettingsPage() {
           bio: user?.bio || "",
           image: user?.image || null,
         }}
+      />
+      <EmailSection
+        email={user?.email || ""}
+        emailVerified={!!user?.emailVerified}
       />
       <DeleteAccountSection
         deletionScheduledAt={user?.deletionScheduledAt?.toISOString() ?? null}

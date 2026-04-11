@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { posts, tags, postTags, likes } from "@/lib/db/schema";
+import { posts, tags, postTags, likes, users } from "@/lib/db/schema";
 import { eq, and, asc, lt, count as drizzleCount, notExists, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
@@ -153,6 +153,14 @@ export async function createPost(formData: FormData) {
     return { error: "로그인이 필요합니다" };
   }
 
+  const dbUser = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+    columns: { emailVerified: true },
+  });
+  if (!dbUser?.emailVerified) {
+    return { error: "이메일 인증 후 글을 작성할 수 있습니다" };
+  }
+
   const rl = checkRateLimit("createPost", session.user.id);
   if (!rl.success)
     return {
@@ -255,6 +263,14 @@ export async function createPost(formData: FormData) {
 export async function updatePost(postId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const updateUser = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+    columns: { emailVerified: true },
+  });
+  if (!updateUser?.emailVerified) {
+    return { error: "이메일 인증 후 글을 작성할 수 있습니다" };
+  }
 
   const rl = checkRateLimit("updatePost", session.user.id);
   if (!rl.success)

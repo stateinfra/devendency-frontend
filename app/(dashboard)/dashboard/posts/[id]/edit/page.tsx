@@ -30,7 +30,7 @@ export default async function EditPostPage({ params }: Props) {
     where: eq(users.id, session.user.id),
     columns: { role: true },
   });
-  const isAdmin = dbUser && ["ADMIN", "SUPER_ADMIN"].includes(dbUser.role);
+  const isAdmin = dbUser && dbUser.role === "ADMIN";
   if (post.authorId !== session.user.id && !isAdmin) {
     redirect("/");
   }

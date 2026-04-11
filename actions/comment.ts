@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { comments, posts } from "@/lib/db/schema";
+import { comments, posts, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { commentSchema } from "@/lib/validations/comment";
@@ -12,6 +12,14 @@ import { isAdmin } from "@/lib/db/helpers";
 export async function createComment(postId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const commentUser = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+    columns: { emailVerified: true },
+  });
+  if (!commentUser?.emailVerified) {
+    return { error: "이메일 인증 후 댓글을 작성할 수 있습니다" };
+  }
 
   const rl = checkRateLimit("createComment", session.user.id);
   if (!rl.success)

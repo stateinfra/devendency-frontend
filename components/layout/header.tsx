@@ -19,13 +19,15 @@ function CompactActions({ session, openSearch }: { session: any; openSearch: () 
       >
         <span className="material-symbols-outlined" style={{ fontSize: 20, width: 20, height: 20, fontVariationSettings: "'opsz' 20, 'wght' 400" }}>search</span>
       </button>
-      <Link
-        href={session?.user ? "/dashboard/posts/new" : "/login"}
-        aria-label="글쓰기"
-        className="size-9 flex items-center justify-center rounded-full bg-black/[0.06] dark:bg-white/[0.08] hover:bg-black/[0.1] dark:hover:bg-white/[0.14] border border-black/[0.1] dark:border-white/[0.1] text-gray-600 dark:text-slate-300 transition-all"
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 20, width: 20, height: 20, fontVariationSettings: "'opsz' 20, 'wght' 400" }}>edit</span>
-      </Link>
+      {session?.user && (
+        <Link
+          href="/dashboard/posts/new"
+          aria-label="글쓰기"
+          className="size-9 flex items-center justify-center rounded-full bg-black/[0.06] dark:bg-white/[0.08] hover:bg-black/[0.1] dark:hover:bg-white/[0.14] border border-black/[0.1] dark:border-white/[0.1] text-gray-600 dark:text-slate-300 transition-all"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20, width: 20, height: 20, fontVariationSettings: "'opsz' 20, 'wght' 400" }}>edit</span>
+        </Link>
+      )}
       {session?.user ? (
         <UserMenu />
       ) : (
@@ -186,12 +188,14 @@ export function Header() {
                 <span className="material-symbols-outlined text-[24px]">search</span>
               </button>
               <ThemeToggle />
-              <Link
-                href={session?.user ? "/dashboard/posts/new" : "/login"}
-                className="flex items-center justify-center h-9 px-4 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-slate-200 text-sm font-medium transition-all"
-              >
-                글쓰기
-              </Link>
+              {session?.user && (
+                <Link
+                  href="/dashboard/posts/new"
+                  className="flex items-center justify-center h-9 px-4 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-slate-200 text-sm font-medium transition-all"
+                >
+                  글쓰기
+                </Link>
+              )}
               {session?.user ? (
                 <UserMenu />
               ) : (
@@ -212,13 +216,15 @@ export function Header() {
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
               </button>
-              <Link
-                href={session?.user ? "/dashboard/posts/new" : "/login"}
-                aria-label="글쓰기"
-                className="size-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
-              </Link>
+              {session?.user && (
+                <Link
+                  href="/dashboard/posts/new"
+                  aria-label="글쓰기"
+                  className="size-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-black/[0.06] dark:hover:bg-white/[0.08] transition-colors"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>edit</span>
+                </Link>
+              )}
               <div className="ml-1.5">
                 {session?.user ? (
                   <UserMenu />

@@ -25,7 +25,7 @@ export function Sidebar() {
     return null;
   }
 
-  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session?.user?.role ?? "");
+  const isAdmin = session?.user?.role === "ADMIN";
   const items = isAdmin
     ? [...sidebarItems, ...adminItems]
     : sidebarItems;

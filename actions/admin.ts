@@ -5,10 +5,7 @@ import { db } from "@/lib/db";
 import { users, posts, verificationTokens } from "@/lib/db/schema";
 import { eq, ilike, or, desc, count, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import {
-  requireAdmin as requireAdminHelper,
-  requireSuperAdmin as requireSuperAdminHelper,
-} from "@/lib/db/helpers";
+import { requireAdmin as requireAdminHelper } from "@/lib/db/helpers";
 import { sendPasswordResetEmail } from "@/lib/resend";
 import crypto from "crypto";
 
@@ -18,13 +15,6 @@ async function requireAdmin() {
   const session = await auth();
   if (!session?.user) throw new Error("권한이 없습니다");
   await requireAdminHelper(session.user.id);
-  return session;
-}
-
-async function requireSuperAdmin() {
-  const session = await auth();
-  if (!session?.user) throw new Error("권한이 없습니다");
-  await requireSuperAdminHelper(session.user.id);
   return session;
 }
 
@@ -200,7 +190,7 @@ export async function changeUserRole(
   userId: string,
   role: "WRITER" | "ADMIN",
 ) {
-  const session = await requireSuperAdmin();
+  const session = await requireAdmin();
 
   if (userId === session.user.id) {
     return { error: "자기 자신의 역할은 변경할 수 없습니다" };
@@ -213,6 +203,29 @@ export async function changeUserRole(
 
   revalidatePath("/dashboard/admin");
   return { success: true };
+}
+
+export async function toggleAnnouncement(postId: string) {
+  await requireAdmin();
+
+  const post = await db.query.posts.findFirst({
+    where: eq(posts.id, postId),
+    columns: { isAnnouncement: true },
+  });
+  if (!post) return { error: "글을 찾을 수 없습니다" };
+
+  if (post.isAnnouncement) {
+    // 공지 해제
+    await db.update(posts).set({ isAnnouncement: false }).where(eq(posts.id, postId));
+  } else {
+    // 기존 공지 해제 후 새 공지 등록
+    await db.update(posts).set({ isAnnouncement: false }).where(eq(posts.isAnnouncement, true));
+    await db.update(posts).set({ isAnnouncement: true }).where(eq(posts.id, postId));
+  }
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/admin");
+  return { success: true, isAnnouncement: !post.isAnnouncement };
 }
 
 export async function adminDeletePost(postId: string) {

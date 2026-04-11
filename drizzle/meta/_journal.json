@@ -36,6 +36,20 @@
       "when": 1774770935478,
       "tag": "0004_small_sister_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775881555852,
+      "tag": "0005_uneven_flatman",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775881827129,
+      "tag": "0006_melodic_mac_gargan",
+      "breakpoints": true
     }
   ]
 }
