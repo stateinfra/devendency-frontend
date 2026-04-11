@@ -51,6 +51,7 @@ export const RATE_LIMITS = {
   updateEmail:  { limit: 5,  windowMs: 60 * 60 * 1000 },      // 5/hr
   resendVerification: { limit: 3, windowMs: 10 * 60 * 1000 }, // 3/10min
   verifyEmailSettings: { limit: 5, windowMs: 10 * 60 * 1000 },// 5/10min
+  report:       { limit: 10, windowMs: 60 * 60 * 1000 },      // 10/hr
   deleteAccount:{ limit: 3,  windowMs: 60 * 60 * 1000 },      // 3/hr
 } as const;
 

@@ -209,3 +209,26 @@ export const likes = pgTable(
   },
   (table) => [primaryKey({ columns: [table.userId, table.postId] })],
 );
+
+// ── Report ──
+export const reportTypeEnum = pgEnum("ReportType", ["POST", "COMMENT"]);
+export const reportStatusEnum = pgEnum("ReportStatus", ["PENDING", "RESOLVED", "DISMISSED"]);
+
+export const reports = pgTable("Report", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  type: reportTypeEnum("type").notNull(),
+  targetId: uuid("targetId").notNull(),
+  reason: text("reason").notNull(),
+  reporterId: uuid("reporterId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: reportStatusEnum("status").default("PENDING").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+});
+
+// ── Spam Filter ──
+export const spamFilters = pgTable("SpamFilter", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pattern: text("pattern").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+});

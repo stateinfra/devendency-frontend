@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { posts, tags, postTags, likes, users } from "@/lib/db/schema";
+import { posts, tags, postTags, likes, users, spamFilters } from "@/lib/db/schema";
 import { eq, and, asc, lt, count as drizzleCount, notExists, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
@@ -188,6 +188,15 @@ export async function createPost(formData: FormData) {
     published,
   } = parsed.data;
   const content = await processContentImages(rawContent, session.user.id);
+
+  // 스팸 필터 체크
+  const filters = await db.query.spamFilters.findMany();
+  const checkText = `${title} ${content}`.toLowerCase();
+  const blocked = filters.find((f) => checkText.includes(f.pattern.toLowerCase()));
+  if (blocked) {
+    return { error: "스팸으로 감지되었습니다" };
+  }
+
   const coverImage = (formData.get("coverImage") as string) || extractFirstImage(content) || null;
 
   const finalSlug = crypto.randomUUID();

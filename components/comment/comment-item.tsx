@@ -7,6 +7,7 @@ import { formatRelativeDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/shared/confirm-modal";
 import { Avatar, Button } from "@/components/ds";
+import { ReportButton } from "@/components/shared/report-button";
 
 type CommentItemProps = {
   comment: {
@@ -77,7 +78,7 @@ export function CommentItem({
                 답글
               </Button>
             )}
-            {currentUserId === comment.author.id && (
+            {currentUserId === comment.author.id ? (
               <>
                 <Button
                   variant="ghost"
@@ -98,7 +99,9 @@ export function CommentItem({
                   loading={isPending}
                 />
               </>
-            )}
+            ) : currentUserId ? (
+              <ReportButton type="COMMENT" targetId={comment.id} />
+            ) : null}
           </div>
           {showReply && (
             <div className="pt-2">

@@ -8,6 +8,7 @@ import { eq, and } from "drizzle-orm";
 import { registerSchema } from "@/lib/validations/auth";
 import { sendVerificationCode, sendPasswordResetEmail } from "@/lib/resend";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 function generateCode(): string {
   return crypto.randomInt(100000, 999999).toString();
@@ -18,6 +19,11 @@ export async function registerUser(formData: FormData) {
   const rl = checkRateLimit("register", ip);
   if (!rl.success)
     return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
+
+  const turnstileToken = formData.get("turnstileToken") as string;
+  if (turnstileToken && !(await verifyTurnstile(turnstileToken))) {
+    return { error: "보안 인증에 실패했습니다. 다시 시도해주세요." };
+  }
 
   const raw = {
     username: formData.get("username") as string,

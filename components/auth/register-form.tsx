@@ -1,23 +1,35 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { registerUser } from "@/actions/auth";
 import { toast } from "sonner";
 import { Button, Input } from "@/components/ds";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export function RegisterForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (TURNSTILE_SITE_KEY && !token) {
+      toast.error("보안 인증을 완료해주세요");
+      return;
+    }
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    formData.set("turnstileToken", token);
     const result = await registerUser(formData);
 
     setLoading(false);
+    turnstileRef.current?.reset();
+    setToken("");
 
     if (result.error) {
       toast.error(result.error);
@@ -64,6 +76,15 @@ export function RegisterForm() {
         required
         minLength={6}
       />
+      {TURNSTILE_SITE_KEY && (
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={TURNSTILE_SITE_KEY}
+          onSuccess={setToken}
+          onExpire={() => setToken("")}
+          options={{ theme: "auto", size: "flexible" }}
+        />
+      )}
       <Button
         type="submit"
         variant="primary"

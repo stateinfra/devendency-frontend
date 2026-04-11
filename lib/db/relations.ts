@@ -10,6 +10,7 @@ import {
   follows,
   likes,
   series,
+  reports,
 } from "./schema";
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -80,4 +81,8 @@ export const followsRelations = relations(follows, ({ one }) => ({
 export const likesRelations = relations(likes, ({ one }) => ({
   user: one(users, { fields: [likes.userId], references: [users.id] }),
   post: one(posts, { fields: [likes.postId], references: [posts.id] }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  reporter: one(users, { fields: [reports.reporterId], references: [users.id] }),
 }));
