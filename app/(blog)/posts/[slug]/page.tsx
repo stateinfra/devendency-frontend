@@ -81,7 +81,7 @@ export default async function PostPage({ params }: Props) {
     where: eq(posts.slug, slug),
     with: {
       author: {
-        columns: { id: true, username: true, name: true, image: true, bio: true },
+        columns: { id: true, username: true, name: true, image: true, bio: true, role: true },
       },
       tags: { with: { tag: true } },
       series: true,
@@ -233,8 +233,11 @@ export default async function PostPage({ params }: Props) {
                 )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary transition-colors">
+                    <span className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-primary transition-colors inline-flex items-center gap-1">
                       {post.author.name}
+                      {post.author.role === "ADMIN" && (
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 16, fontVariationSettings: "'FILL' 1" }}>verified</span>
+                      )}
                     </span>
                     <span className="text-xs text-slate-500">
                       &middot; {formatDate(post.publishedAt || post.createdAt)}

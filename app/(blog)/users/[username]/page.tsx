@@ -56,7 +56,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
 
   const user = await db.query.users.findFirst({
     where: eq(users.username, cleanUsername(username)),
-    columns: { id: true, username: true, name: true, image: true, bio: true, createdAt: true },
+    columns: { id: true, username: true, name: true, image: true, bio: true, role: true, createdAt: true },
   });
 
   if (!user) notFound();
@@ -152,7 +152,12 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         <div className="flex-1 text-center md:text-left space-y-4">
           <div>
             <div className="flex items-center justify-center md:justify-start gap-3">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white inline-flex items-center gap-1.5">
+                {user.name}
+                {user.role === "ADMIN" && (
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 22, fontVariationSettings: "'FILL' 1" }}>verified</span>
+                )}
+              </h2>
               {!isOwnProfile && session?.user && (
                 <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
               )}

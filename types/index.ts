@@ -28,6 +28,7 @@ export type PostWithRelations = {
     username: string | null;
     name: string | null;
     image: string | null;
+    role?: string;
   };
   tags: {
     tag: {

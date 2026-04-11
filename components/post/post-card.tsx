@@ -61,8 +61,11 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                   initial={post.author.name?.[0]?.toUpperCase() || "A"}
                   size="xs"
                 />
-                <span className="font-medium text-gray-600 dark:text-[#dcddde]/60">
+                <span className="font-medium text-gray-600 dark:text-[#dcddde]/60 inline-flex items-center gap-1">
                   {post.author.name}
+                  {post.author.role === "ADMIN" && (
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  )}
                 </span>
               </span>
               <span>&middot;</span>

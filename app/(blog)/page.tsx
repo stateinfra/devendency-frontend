@@ -42,7 +42,7 @@ export default async function HomePage({ searchParams }: Props) {
       const fetched = await db.query.posts.findMany({
         where: inArray(posts.id, ids),
         with: {
-          author: { columns: { id: true, username: true, name: true, image: true } },
+          author: { columns: { id: true, username: true, name: true, image: true, role: true } },
           tags: { with: { tag: true } },
           comments: { columns: { id: true } },
           likes: { columns: { userId: true } },
@@ -98,7 +98,7 @@ export default async function HomePage({ searchParams }: Props) {
       limit: POSTS_PER_PAGE,
       offset: (page - 1) * POSTS_PER_PAGE,
       with: {
-        author: { columns: { id: true, username: true, name: true, image: true } },
+        author: { columns: { id: true, username: true, name: true, image: true, role: true } },
         tags: { with: { tag: true } },
         comments: { columns: { id: true } },
         likes: { columns: { userId: true } },
