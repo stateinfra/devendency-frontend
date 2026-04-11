@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Input } from "@/components/ds";
 
 export function ProfilePostSearch({
   initialQuery,
@@ -27,18 +28,14 @@ export function ProfilePostSearch({
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center">
-      <div className="relative">
-        <input
-          type="search"
-          placeholder="글 검색..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="h-8 pl-8 pr-3 rounded-lg border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-sm text-gray-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-primary/30 w-[180px]"
-        />
-        <span className="material-symbols-outlined text-[16px] text-slate-500 absolute left-2 top-1/2 -translate-y-1/2">
-          search
-        </span>
-      </div>
+      <Input
+        type="search"
+        placeholder="글 검색..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        size="sm"
+        className="w-[180px]"
+      />
     </form>
   );
 }

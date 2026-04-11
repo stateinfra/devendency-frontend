@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSeries, updateSeries, deleteSeries } from "@/actions/series";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Button, Input } from "@/components/ds";
 
 type SeriesPost = {
   id: string;
@@ -96,43 +97,43 @@ export function SeriesManager({
       {/* 생성 버튼/폼 */}
       {showCreate ? (
         <div className="p-5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card space-y-3">
-          <input
+          <Input
             placeholder="시리즈 이름"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
             autoFocus
           />
-          <input
+          <Input
             placeholder="설명 (선택)"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
           />
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={handleCreate}
               disabled={isPending || !newName.trim()}
-              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/80 transition-colors disabled:opacity-40"
+              size="sm"
             >
               생성
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => { setShowCreate(false); setNewName(""); setNewDescription(""); }}
-              className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               취소
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <button
+        <Button
+          variant="outline"
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-black/10 dark:border-white/10 text-slate-400 text-sm hover:border-black/20 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white transition-colors w-full justify-center"
+          className="w-full border-dashed"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           새 시리즈 만들기
-        </button>
+        </Button>
       )}
 
       {/* 시리즈 목록 */}
@@ -147,32 +148,31 @@ export function SeriesManager({
         >
           {editingId === s.id ? (
             <div className="p-5 space-y-3">
-              <input
+              <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-sm text-white outline-none focus:ring-1 focus:ring-primary/30"
                 autoFocus
               />
-              <input
+              <Input
                 placeholder="설명 (선택)"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-600 outline-none focus:ring-1 focus:ring-primary/30"
               />
               <div className="flex items-center gap-2">
-                <button
+                <Button
                   onClick={handleUpdate}
                   disabled={isPending || !editName.trim()}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/80 transition-colors disabled:opacity-40"
+                  size="sm"
                 >
                   저장
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setEditingId(null)}
-                  className="px-4 py-2 rounded-lg text-slate-400 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   취소
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
@@ -188,19 +188,24 @@ export function SeriesManager({
                   )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     onClick={() => handleEdit(s)}
-                    className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">edit</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     onClick={() => handleDelete(s.id, s.name)}
                     disabled={isPending}
-                    className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-900/20 transition-colors"
+                    className="hover:text-red-400 hover:bg-red-900/20"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 

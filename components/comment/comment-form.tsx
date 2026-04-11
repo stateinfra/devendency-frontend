@@ -42,14 +42,16 @@ export function CommentForm({ postId, parentId, onSuccess }: CommentFormProps) {
         onChange={(e) => setContent(e.target.value)}
         rows={3}
       />
-      <Button
-        type="submit"
-        pill
-        disabled={!content.trim()}
-        loading={isPending}
-      >
-        {isPending ? "작성 중..." : "댓글 작성"}
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          pill
+          disabled={!content.trim()}
+          loading={isPending}
+        >
+          {isPending ? "작성 중..." : "댓글 작성"}
+        </Button>
+      </div>
     </form>
   );
 }

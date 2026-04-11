@@ -161,7 +161,7 @@ export default async function PostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 relative max-w-[1200px] mx-auto">
-        <aside className="hidden lg:block lg:col-span-3 relative z-[60]">
+        <aside className="hidden lg:block lg:col-span-3 relative z-40">
           <div className="sticky top-24 space-y-8">
             {!isDraft && <PostActions variant="sidebar" markdownContent={post.content} />}
             <TableOfContents content={post.content} />

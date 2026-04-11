@@ -100,6 +100,12 @@ export function Header() {
   useEffect(() => {
     if (!compact) return;
     function onScroll() {
+      // ToC 클릭으로 인한 스크롤이면 헤더 강제 표시
+      if ((window as any).__tocScrolling) {
+        setCompactHidden(false);
+        lastScrollY.current = window.scrollY;
+        return;
+      }
       const y = window.scrollY;
       // 200px 이상 스크롤 & 아래로 스크롤 중이면 숨김
       if (y > 200 && y > lastScrollY.current) {
@@ -148,6 +154,7 @@ export function Header() {
           backdropFilter: "blur(12px)",
           transform: compact && compactHidden ? "translateY(-100%)" : "translateY(0)",
           opacity: compact && compactHidden ? 0 : 1,
+          pointerEvents: compact && compactHidden ? "none" : "auto",
         }}
       >
         <div

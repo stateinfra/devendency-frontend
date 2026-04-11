@@ -150,14 +150,14 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
           </div>
         )}
         <div className="flex-1 text-center md:text-left space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-3">
-            <div>
+          <div>
+            <div className="flex items-center justify-center md:justify-start gap-3">
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
-              <span className="text-slate-500 text-sm">@{user.username}</span>
+              {!isOwnProfile && session?.user && (
+                <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
+              )}
             </div>
-            {!isOwnProfile && session?.user && (
-              <FollowButton targetUserId={user.id} initialFollowing={isFollowing} />
-            )}
+            <span className="text-slate-500 text-sm">@{user.username}</span>
           </div>
           {user.bio && <p className="text-gray-500 dark:text-slate-400 text-sm leading-relaxed">{user.bio}</p>}
           <FollowStats

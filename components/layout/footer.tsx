@@ -1,8 +1,6 @@
 import Link from "next/link";
 
 const NAV = [
-  { label: "글 검색", href: "/search" },
-  { label: "태그", href: "/tags" },
   { label: "Design System", href: "/design-system" },
   { label: "GitHub", href: "https://github.com/stateinfra", external: true },
   { label: "Discord", href: "https://discord.gg/8q2Qr434Bg", external: true },
@@ -24,16 +22,18 @@ export function Footer() {
         </div>
 
         {/* Right — nav links, single row */}
-        <nav className="flex flex-wrap items-center gap-x-3 sm:gap-x-5 gap-y-2">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="text-[11px] text-gray-400 dark:text-[#dcddde]/35 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
-            >
-              {item.label}
-            </Link>
+        <nav className="flex flex-wrap items-center gap-y-2">
+          {NAV.map((item, i) => (
+            <span key={item.href} className="flex items-center">
+              {i > 0 && <span className="mx-2 sm:mx-3 text-[11px] text-gray-300 dark:text-[#dcddde]/20">&middot;</span>}
+              <Link
+                href={item.href}
+                {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                className="text-[11px] text-gray-400 dark:text-[#dcddde]/35 hover:text-gray-900 dark:hover:text-[#dcddde] transition-colors"
+              >
+                {item.label}
+              </Link>
+            </span>
           ))}
         </nav>
 

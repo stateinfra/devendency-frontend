@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ImageCropModal } from "@/components/editor/cover-image-crop-modal";
+import { Spinner } from "@/components/ds";
 
 type AvatarUploadProps = {
   currentImage: string | null;
@@ -109,10 +110,7 @@ export function AvatarUpload({ currentImage, username }: AvatarUploadProps) {
         {/* 호버 오버레이 */}
         <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
           {isPending ? (
-            <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
-            </svg>
+            <Spinner size="sm" className="border-white/30 border-t-white" />
           ) : (
             <>
               <span className="material-symbols-outlined text-white text-[20px]">photo_camera</span>

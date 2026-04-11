@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toggleFollow } from "@/actions/follow";
 import { toast } from "sonner";
+import { Button } from "@/components/ds";
 
 type FollowButtonProps = {
   targetUserId: string;
@@ -28,16 +29,15 @@ export function FollowButton({
   }
 
   return (
-    <button
+    <Button
       onClick={handleClick}
       disabled={isPending}
-      className={`h-9 px-5 rounded-full text-sm font-medium transition-colors ${
-        following
-          ? "bg-black/10 dark:bg-white/10 text-gray-600 dark:text-slate-300 hover:bg-red-900/20 hover:text-red-400 border border-black/10 dark:border-white/10"
-          : "bg-primary text-white hover:bg-primary/80"
-      }`}
+      variant={following ? "outline" : "primary"}
+      pill
+      size="sm"
+      className={following ? "hover:bg-red-900/20 hover:text-red-400 hover:border-red-500/20" : ""}
     >
       {following ? "팔로잉" : "팔로우"}
-    </button>
+    </Button>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 type TocItem = {
   id: string;
@@ -11,6 +11,8 @@ type TocItem = {
 export function TableOfContents({ content }: { content: string }) {
   const [activeId, setActiveId] = useState<string>("");
   const [headings, setHeadings] = useState<TocItem[]>([]);
+  const scrollingRef = useRef(false);
+  const pendingIdRef = useRef<string | null>(null);
 
   // DOM에서 실제 헤딩 요소를 읽어 ToC 생성
   useEffect(() => {
@@ -35,6 +37,23 @@ export function TableOfContents({ content }: { content: string }) {
     return () => clearTimeout(timer);
   }, [content]);
 
+  // 스크롤 완료 감지: 스크롤이 멈추면 scrolling 해제 + pending id 적용
+  const scrollEndTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const onScrollEnd = useCallback(() => {
+    clearTimeout(scrollEndTimer.current);
+    scrollEndTimer.current = setTimeout(() => {
+      if (scrollingRef.current) {
+        scrollingRef.current = false;
+        (window as any).__tocScrolling = false;
+        if (pendingIdRef.current) {
+          setActiveId(pendingIdRef.current);
+          pendingIdRef.current = null;
+        }
+      }
+    }, 150);
+  }, []);
+
   useEffect(() => {
     if (headings.length === 0) return;
 
@@ -46,6 +65,7 @@ export function TableOfContents({ content }: { content: string }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (scrollingRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             setActiveId(entry.target.id);
@@ -53,12 +73,17 @@ export function TableOfContents({ content }: { content: string }) {
           }
         }
       },
-      { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
+      { rootMargin: "-60px 0px -70% 0px", threshold: 0 }
     );
 
     elements.forEach((el) => observer.observe(el));
 
     function handleScroll() {
+      if (scrollingRef.current) {
+        onScrollEnd();
+        return;
+      }
+
       const firstEl = elements[0];
       const lastEl = elements[elements.length - 1];
       if (!firstEl || !lastEl) return;
@@ -84,7 +109,22 @@ export function TableOfContents({ content }: { content: string }) {
       observer.disconnect();
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [headings]);
+  }, [headings, onScrollEnd]);
+
+  function handleTocClick(headingId: string) {
+    // 플래그를 먼저 세팅하여 scroll 이벤트보다 선행
+    scrollingRef.current = true;
+    pendingIdRef.current = headingId;
+    (window as any).__tocScrolling = true;
+
+    // 다음 프레임에서 scrollIntoView 실행 (플래그 확실히 반영 후)
+    requestAnimationFrame(() => {
+      document.getElementById(headingId)?.scrollIntoView({
+        behavior: "smooth",
+      });
+      onScrollEnd();
+    });
+  }
 
   if (headings.length === 0) return null;
 
@@ -99,9 +139,7 @@ export function TableOfContents({ content }: { content: string }) {
           href={`#${heading.id}`}
           onClick={(e) => {
             e.preventDefault();
-            document.getElementById(heading.id)?.scrollIntoView({
-              behavior: "smooth",
-            });
+            handleTocClick(heading.id);
           }}
           className={`block text-[13px] leading-relaxed transition-colors py-0.5 border-l-2 ${
             heading.level === 1

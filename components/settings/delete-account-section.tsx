@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { requestAccountDeletion, cancelAccountDeletion } from "@/actions/account";
 import { toast } from "sonner";
+import { Button, Input } from "@/components/ds";
 
 type DeleteAccountSectionProps = {
   deletionScheduledAt: string | null;
@@ -60,13 +61,13 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
           이 계정은 <span className="text-red-400 font-medium">{formattedDate}</span>에 영구 삭제될 예정입니다.
           탈퇴를 취소하면 계정이 정상적으로 복구됩니다.
         </p>
-        <button
+        <Button
           onClick={handleCancelDeletion}
           disabled={isPending}
-          className="h-10 px-6 rounded-lg bg-primary hover:bg-primary/80 text-white text-sm font-medium transition-colors disabled:opacity-50"
+          loading={isPending}
         >
           {isPending ? "처리 중..." : "탈퇴 취소"}
-        </button>
+        </Button>
       </div>
     );
   }
@@ -80,12 +81,9 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
       </p>
 
       {!showConfirm ? (
-        <button
-          onClick={() => setShowConfirm(true)}
-          className="h-10 px-6 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors"
-        >
+        <Button variant="danger" onClick={() => setShowConfirm(true)}>
           회원 탈퇴
-        </button>
+        </Button>
       ) : (
         <form onSubmit={handleRequestDeletion} className="space-y-3">
           <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10">
@@ -93,13 +91,12 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
               정말 탈퇴하시겠습니까? 확인을 위해 비밀번호를 입력해주세요.
             </p>
             {hasPassword ? (
-              <input
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호"
                 required
-                className="w-full h-10 px-3 rounded-lg border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.04] dark:bg-white/[0.04] text-sm text-gray-900 dark:text-[#dcddde] placeholder:text-gray-400 dark:placeholder:text-[#dcddde]/30 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-colors"
               />
             ) : (
               <p className="text-sm text-gray-500 dark:text-[#dcddde]/50">
@@ -108,24 +105,25 @@ export function DeleteAccountSection({ deletionScheduledAt, hasPassword }: Delet
             )}
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => {
                 setShowConfirm(false);
                 setPassword("");
               }}
-              className="h-10 px-4 rounded-lg border border-black/[0.06] dark:border-white/[0.06] text-sm text-gray-500 dark:text-[#dcddde]/70 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
             >
               취소
-            </button>
+            </Button>
             {hasPassword && (
-              <button
+              <Button
                 type="submit"
+                variant="danger"
                 disabled={isPending || !password}
-                className="h-10 px-6 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                loading={isPending}
               >
                 {isPending ? "처리 중..." : "탈퇴 확인"}
-              </button>
+              </Button>
             )}
           </div>
         </form>
