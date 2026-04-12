@@ -9,15 +9,14 @@ import { languages } from "@codemirror/language-data";
 import { EditorView, ViewPlugin, Decoration, WidgetType, type DecorationSet } from "@codemirror/view";
 import { syntaxHighlighting, HighlightStyle, syntaxTree } from "@codemirror/language";
 import { StateField } from "@codemirror/state";
-import { autocompletion, type CompletionContext } from "@codemirror/autocomplete";
 import { tags } from "@lezer/highlight";
-import { searchPostsForAutocomplete } from "@/actions/post-search";
 import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
 import { ImageCropModal } from "./cover-image-crop-modal";
 import { YouTubePasteMenu } from "./youtube-paste-menu";
 import { MarkdownGuideModal } from "./markdown-guide-modal";
 import { SlashMenu, type SlashItem } from "./slash-menu";
+import { WikiLinkMenu, type WikiSuggestion } from "./wiki-link-menu";
 
 // ── YouTube URL detection ──
 function extractYouTubeVideoId(url: string): string | null {
@@ -390,29 +389,6 @@ const markdownHighlighting = HighlightStyle.define([
   { tag: tags.deleted, color: "var(--code-deleted)" },
 ]);
 
-async function wikiLinkCompletions(ctx: CompletionContext) {
-  // match "[[query" before cursor, without closing brackets
-  const before = ctx.matchBefore(/\[\[([^\[\]\n]*)$/);
-  if (!before) return null;
-  const query = before.text.slice(2); // strip leading [[
-  if (!ctx.explicit && query.length === 0) return null;
-
-  const rows = await searchPostsForAutocomplete(query);
-  if (rows.length === 0) return null;
-
-  return {
-    from: before.from + 2, // after "[["
-    to: ctx.pos,
-    options: rows.map((p) => ({
-      label: p.title,
-      detail: p.slug,
-      apply: `${p.slug}]]`,
-      type: "text",
-    })),
-    validFor: /^[^\[\]\n]*$/,
-  };
-}
-
 const editorExtensions = [
   markdown({ base: markdownLanguage, codeLanguages: languages }),
   EditorView.lineWrapping,
@@ -420,11 +396,6 @@ const editorExtensions = [
   codeBlockPlugin,
   imagePreviewField,
   imageUploadExtension,
-  autocompletion({
-    override: [wikiLinkCompletions],
-    activateOnTyping: true,
-    closeOnBlur: true,
-  }),
 ];
 
 export function MarkdownEditor({
@@ -459,6 +430,12 @@ export function MarkdownEditor({
     x: number;
     y: number;
     from: number; // position of "/" character
+    query: string;
+  } | null>(null);
+  const [wikiMenu, setWikiMenu] = useState<{
+    x: number;
+    y: number;
+    from: number; // position of first "[" in "[["
     query: string;
   } | null>(null);
 
@@ -616,18 +593,40 @@ export function MarkdownEditor({
     setContent(value);
   }, []);
 
-  // ── Slash menu detection ──
+  // ── Slash + wiki-link menu detection ──
   const handleEditorUpdate = useCallback((vu: { view: EditorView }) => {
     const view = vu.view;
     const sel = view.state.selection.main;
     if (!sel.empty) {
       setSlashMenu(null);
+      setWikiMenu(null);
       return;
     }
     const cursor = sel.head;
     const line = view.state.doc.lineAt(cursor);
     const beforeCursor = line.text.slice(0, cursor - line.from);
-    // match: line is empty before "/" (or only whitespace) + "/" + optional query
+
+    // wiki-link: "[[query" not yet closed
+    const wiki = beforeCursor.match(/\[\[([^\[\]\n]*)$/);
+    if (wiki) {
+      const bracketOffset = beforeCursor.lastIndexOf("[[");
+      const from = line.from + bracketOffset;
+      const coords = view.coordsAtPos(from);
+      if (coords) {
+        setWikiMenu({
+          x: coords.left,
+          y: coords.bottom + 4,
+          from,
+          query: wiki[1],
+        });
+        setSlashMenu(null);
+        return;
+      }
+    } else {
+      setWikiMenu(null);
+    }
+
+    // slash menu: line starts (or whitespace) + "/" + optional query
     const m = beforeCursor.match(/(?:^|\s)\/([a-zA-Z0-9가-힣]*)$/);
     if (!m) {
       setSlashMenu(null);
@@ -643,6 +642,22 @@ export function MarkdownEditor({
     }
     setSlashMenu({ x: coords.left, y: coords.bottom + 4, from, query });
   }, []);
+
+  const handleWikiSelect = useCallback(
+    (item: WikiSuggestion) => {
+      const view = editorRef.current?.view;
+      if (!view || !wikiMenu) return;
+      const cursor = view.state.selection.main.head;
+      const insert = `[[${item.slug}]]`;
+      view.dispatch({
+        changes: { from: wikiMenu.from, to: cursor, insert },
+        selection: { anchor: wikiMenu.from + insert.length },
+      });
+      setWikiMenu(null);
+      view.focus();
+    },
+    [wikiMenu],
+  );
 
   const handleSlashSelect = useCallback(
     (item: SlashItem) => {
@@ -800,7 +815,7 @@ export function MarkdownEditor({
         backup.title !== (initialData?.title || "") ||
         backup.content !== (initialData?.content || "");
       if (hasBackupContent && differsFromInitial) {
-        const toastId = toast("저장되지 않은 이전 작업이 있습니다.", {
+        toast("저장되지 않은 이전 작업이 있습니다. 복원하시겠습니까?", {
           action: {
             label: "복원",
             onClick: () => {
@@ -812,18 +827,7 @@ export function MarkdownEditor({
               toast.success("이전 작업이 복원되었습니다");
             },
           },
-          cancel: {
-            label: "새로 시작",
-            onClick: () => {
-              try {
-                localStorage.removeItem(key);
-              } catch {
-                /* ignore */
-              }
-              toast.dismiss(toastId);
-            },
-          },
-          duration: 15000,
+          duration: 10000,
         });
       }
     } catch {
@@ -1177,6 +1181,15 @@ export function MarkdownEditor({
           query={slashMenu.query}
           onSelect={handleSlashSelect}
           onClose={() => setSlashMenu(null)}
+        />
+      )}
+
+      {wikiMenu && (
+        <WikiLinkMenu
+          position={{ x: wikiMenu.x, y: wikiMenu.y }}
+          query={wikiMenu.query}
+          onSelect={handleWikiSelect}
+          onClose={() => setWikiMenu(null)}
         />
       )}
 
