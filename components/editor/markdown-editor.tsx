@@ -17,6 +17,7 @@ import { YouTubePasteMenu } from "./youtube-paste-menu";
 import { MarkdownGuideModal } from "./markdown-guide-modal";
 import { SlashMenu, type SlashItem } from "./slash-menu";
 import { WikiLinkMenu, type WikiSuggestion } from "./wiki-link-menu";
+import { TableSizePicker, buildTableMarkdown } from "./table-size-picker";
 
 // ── YouTube URL detection ──
 function extractYouTubeVideoId(url: string): string | null {
@@ -439,6 +440,12 @@ export function MarkdownEditor({
     from: number; // position of first "[" in "[["
     query: string;
   } | null>(null);
+  const [tablePicker, setTablePicker] = useState<{
+    x: number;
+    y: number;
+    from: number;
+    to: number;
+  } | null>(null);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -671,6 +678,19 @@ export function MarkdownEditor({
       const view = editorRef.current?.view;
       if (!view || !slashMenu) return;
       const cursor = view.state.selection.main.head;
+
+      // Special case: table → open size picker instead of inserting snippet
+      if (item.key === "table") {
+        setTablePicker({
+          x: slashMenu.x,
+          y: slashMenu.y,
+          from: slashMenu.from,
+          to: cursor,
+        });
+        setSlashMenu(null);
+        return;
+      }
+
       const cursorMark = "${C}";
       const cursorIndex = item.snippet.indexOf(cursorMark);
       const insertText = item.snippet.replace(cursorMark, "");
@@ -686,6 +706,21 @@ export function MarkdownEditor({
       view.focus();
     },
     [slashMenu],
+  );
+
+  const handleTableInsert = useCallback(
+    (rows: number, cols: number) => {
+      const view = editorRef.current?.view;
+      if (!view || !tablePicker) return;
+      const md = buildTableMarkdown(rows, cols);
+      view.dispatch({
+        changes: { from: tablePicker.from, to: tablePicker.to, insert: md },
+        selection: { anchor: tablePicker.from + md.length },
+      });
+      setTablePicker(null);
+      view.focus();
+    },
+    [tablePicker],
   );
 
   const handleYouTubeSelect = useCallback(
@@ -1197,6 +1232,14 @@ export function MarkdownEditor({
           query={wikiMenu.query}
           onSelect={handleWikiSelect}
           onClose={() => setWikiMenu(null)}
+        />
+      )}
+
+      {tablePicker && (
+        <TableSizePicker
+          position={{ x: tablePicker.x, y: tablePicker.y }}
+          onSelect={handleTableInsert}
+          onClose={() => setTablePicker(null)}
         />
       )}
 
