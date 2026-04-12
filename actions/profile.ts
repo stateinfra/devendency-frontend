@@ -31,10 +31,19 @@ export async function updateProfile(formData: FormData) {
   if (!rl.success)
     return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
+  const cleanHandle = (h?: string | null) => {
+    const t = (h ?? "").trim().replace(/^@/, "");
+    return t || undefined;
+  };
+
   const raw = {
     username: (formData.get("username") as string)?.trim(),
     name: (formData.get("name") as string)?.trim(),
     bio: (formData.get("bio") as string)?.trim() || undefined,
+    github: cleanHandle(formData.get("github") as string | null),
+    linkedin: cleanHandle(formData.get("linkedin") as string | null),
+    twitter: cleanHandle(formData.get("twitter") as string | null),
+    instagram: cleanHandle(formData.get("instagram") as string | null),
   };
 
   const parsed = profileSchema.safeParse(raw);
@@ -42,7 +51,7 @@ export async function updateProfile(formData: FormData) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { username, name, bio } = parsed.data;
+  const { username, name, bio, github, linkedin, twitter, instagram } = parsed.data;
 
   const existing = await db.query.users.findFirst({
     where: eq(users.username, username),
@@ -58,6 +67,10 @@ export async function updateProfile(formData: FormData) {
       username,
       name,
       bio: bio || null,
+      github: github || null,
+      linkedin: linkedin || null,
+      twitter: twitter || null,
+      instagram: instagram || null,
       updatedAt: new Date(),
     })
     .where(eq(users.id, session.user.id));

@@ -17,7 +17,7 @@ export function FollowStats({
     "flex gap-1.5 items-center hover:opacity-70 transition-opacity";
 
   return (
-    <div className="flex items-center justify-center md:justify-start gap-4 sm:gap-6 text-sm">
+    <div className="flex items-center gap-4 sm:gap-6 text-sm">
       <div className="flex gap-1.5 items-center">
         <span className="font-bold text-gray-900 dark:text-white">{postCount}</span>
         <span className="text-slate-500">포스트</span>

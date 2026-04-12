@@ -84,7 +84,14 @@
       "Bash(curl -s -o /dev/null -w \"/ %{http_code}\\\\n\" http://localhost:3000/)",
       "Bash(curl -s -o /dev/null -w \"/auth/login %{http_code}\\\\n\" http://localhost:3000/auth/login)",
       "Bash(curl -s -o /dev/null -w \"/dashboard/posts/new %{http_code}\\\\n\" http://localhost:3000/dashboard/posts/new)",
-      "Bash(pnpm db:push)"
+      "Bash(pnpm db:push)",
+      "Bash(node -r dotenv/config -e ':*)",
+      "Bash(curl -s http://localhost:3000/users/@enbraining)",
+      "Read(//tmp/**)",
+      "Bash(node -r dotenv/config --experimental-strip-types -e ':*)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 48224)",
+      "Bash(curl -sL https://www.gnu.org/licenses/agpl-3.0.txt -o \"C:/Users/enbraining/devlog/LICENSE\")"
     ]
   }
 }

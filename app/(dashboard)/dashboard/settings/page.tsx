@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.user.id),
-    columns: { username: true, name: true, email: true, bio: true, image: true, password: true, emailVerified: true, deletionScheduledAt: true },
+    columns: { username: true, name: true, email: true, bio: true, image: true, password: true, emailVerified: true, deletionScheduledAt: true, github: true, linkedin: true, twitter: true, instagram: true },
   });
 
   return (
@@ -30,6 +30,10 @@ export default async function SettingsPage() {
           name: user?.name || "",
           bio: user?.bio || "",
           image: user?.image || null,
+          github: user?.github || "",
+          linkedin: user?.linkedin || "",
+          twitter: user?.twitter || "",
+          instagram: user?.instagram || "",
         }}
       />
       <EmailSection
