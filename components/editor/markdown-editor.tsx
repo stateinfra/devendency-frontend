@@ -14,6 +14,8 @@ import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
 import { ImageCropModal } from "./cover-image-crop-modal";
 import { YouTubePasteMenu } from "./youtube-paste-menu";
+import { MarkdownGuideModal } from "./markdown-guide-modal";
+import { SlashMenu, type SlashItem } from "./slash-menu";
 
 // ── YouTube URL detection ──
 function extractYouTubeVideoId(url: string): string | null {
@@ -444,6 +446,13 @@ export function MarkdownEditor({
   const [showSeriesDropdown, setShowSeriesDropdown] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [slashMenu, setSlashMenu] = useState<{
+    x: number;
+    y: number;
+    from: number; // position of "/" character
+    query: string;
+  } | null>(null);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -599,6 +608,56 @@ export function MarkdownEditor({
     setContent(value);
   }, []);
 
+  // ── Slash menu detection ──
+  const handleEditorUpdate = useCallback((vu: { view: EditorView }) => {
+    const view = vu.view;
+    const sel = view.state.selection.main;
+    if (!sel.empty) {
+      setSlashMenu(null);
+      return;
+    }
+    const cursor = sel.head;
+    const line = view.state.doc.lineAt(cursor);
+    const beforeCursor = line.text.slice(0, cursor - line.from);
+    // match: line is empty before "/" (or only whitespace) + "/" + optional query
+    const m = beforeCursor.match(/(?:^|\s)\/([a-zA-Z0-9가-힣]*)$/);
+    if (!m) {
+      setSlashMenu(null);
+      return;
+    }
+    const query = m[1];
+    const slashOffset = beforeCursor.lastIndexOf("/");
+    const from = line.from + slashOffset;
+    const coords = view.coordsAtPos(from);
+    if (!coords) {
+      setSlashMenu(null);
+      return;
+    }
+    setSlashMenu({ x: coords.left, y: coords.bottom + 4, from, query });
+  }, []);
+
+  const handleSlashSelect = useCallback(
+    (item: SlashItem) => {
+      const view = editorRef.current?.view;
+      if (!view || !slashMenu) return;
+      const cursor = view.state.selection.main.head;
+      const cursorMark = "${C}";
+      const cursorIndex = item.snippet.indexOf(cursorMark);
+      const insertText = item.snippet.replace(cursorMark, "");
+      view.dispatch({
+        changes: { from: slashMenu.from, to: cursor, insert: insertText },
+        selection: {
+          anchor:
+            slashMenu.from +
+            (cursorIndex >= 0 ? cursorIndex : insertText.length),
+        },
+      });
+      setSlashMenu(null);
+      view.focus();
+    },
+    [slashMenu],
+  );
+
   const handleYouTubeSelect = useCallback(
     (type: "text" | "link" | "video") => {
       if (!ytPaste || !editorRef.current?.view) return;
@@ -649,9 +708,9 @@ export function MarkdownEditor({
   const backupKey = currentPostId ? `draft-backup-${currentPostId}` : "draft-backup-new";
 
   const performAutoSave = useCallback(async () => {
-    if (!title || !content) return;
+    if (!title && !content) return;
 
-    // Save to localStorage as backup before server call
+    // localStorage only — no server draft creation
     try {
       localStorage.setItem(
         backupKey,
@@ -664,40 +723,6 @@ export function MarkdownEditor({
           savedAt: new Date().toISOString(),
         }),
       );
-    } catch {
-      // localStorage full or unavailable — ignore
-    }
-
-    setAutoSaveStatus("saving");
-
-    const formData = new FormData();
-    formData.set("title", title);
-    formData.set("content", content);
-    formData.set("excerpt", "");
-    selectedTags.forEach((name) => formData.append("tagNames", name));
-    // 이미 발행된 글은 발행 상태 유지, 새 글 자동저장은 임시저장으로
-    const isPublished = initialData?.published ?? false;
-    formData.set("published", String(isPublished));
-    formData.set("coverImage", coverImage ?? "");
-    formData.set("seriesId", selectedSeriesId);
-
-    const result = currentPostId
-      ? await updatePost(currentPostId, formData)
-      : await createPost(formData);
-
-    if (!result.error) {
-      // First create → capture postId for future updates
-      if (!currentPostId && "postId" in result && result.postId) {
-        setCurrentPostId(result.postId);
-        // Migrate localStorage key from "new" to actual postId
-        try {
-          const backup = localStorage.getItem("draft-backup-new");
-          if (backup) {
-            localStorage.setItem(`draft-backup-${result.postId}`, backup);
-            localStorage.removeItem("draft-backup-new");
-          }
-        } catch { /* ignore */ }
-      }
       savedRef.current = {
         title,
         content,
@@ -705,30 +730,12 @@ export function MarkdownEditor({
         coverImage: coverImage ?? null,
         seriesId: selectedSeriesId,
       };
-      retryCount.current = 0;
       setAutoSaveStatus("saved");
       setLastSavedAt(new Date());
-
-      // Clear localStorage backup on successful server save
-      try {
-        const key = currentPostId
-          ? `draft-backup-${currentPostId}`
-          : "postId" in result && result.postId
-            ? `draft-backup-${result.postId}`
-            : "draft-backup-new";
-        localStorage.removeItem(key);
-      } catch { /* ignore */ }
-    } else {
+    } catch {
       setAutoSaveStatus("error");
-      // Retry up to 3 times with 5s delay
-      if (retryCount.current < 3) {
-        retryCount.current++;
-        retryTimer.current = setTimeout(() => {
-          performAutoSave();
-        }, 5000);
-      }
     }
-  }, [title, content, selectedTags, coverImage, selectedSeriesId, currentPostId, backupKey]);
+  }, [title, content, selectedTags, coverImage, selectedSeriesId, backupKey]);
 
   useEffect(() => {
     if (!title && !content) return;
@@ -871,17 +878,19 @@ export function MarkdownEditor({
         </div>
       )}
 
-      {/* Minimal top bar */}
-      <div className="flex items-center justify-between px-5 h-14 border-b border-black/[0.06] dark:border-white/[0.06] shrink-0">
-        <Link
-          href={postId && initialData?.slug ? `/posts/${initialData.slug}` : "/"}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          나가기
-        </Link>
+      {/* Top bar — 3 columns: left (back) / center (actions) / right (status + publish) */}
+      <div className="grid grid-cols-3 items-center gap-2 px-3 sm:px-5 h-14 border-b border-black/[0.06] dark:border-white/[0.06] shrink-0 overflow-hidden">
+        <div className="flex items-center justify-self-start">
+          <Link
+            href={postId && initialData?.slug ? `/posts/${initialData.slug}` : "/"}
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="hidden sm:inline">나가기</span>
+          </Link>
+        </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-1">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -903,32 +912,35 @@ export function MarkdownEditor({
               e.target.value = "";
             }}
           />
+        </div>
+
+        <div className="flex items-center justify-self-end gap-3">
           {autoSaveStatus === "saving" && (
-            <span className="text-[11px] text-slate-600">저장 중...</span>
+            <span className="hidden md:inline text-[11px] text-slate-600 whitespace-nowrap">저장 중...</span>
           )}
           {autoSaveStatus === "saved" && lastSavedAt && (
-            <span className="text-[11px] text-slate-600">
+            <span className="hidden md:inline text-[11px] text-slate-600 whitespace-nowrap">
               자동 저장됨 ({lastSavedAt.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })})
             </span>
           )}
           {autoSaveStatus === "error" && (
-            <span className="text-[11px] text-red-400">
+            <span className="hidden md:inline text-[11px] text-red-400 whitespace-nowrap">
               저장 실패{retryCount.current < 3 ? " · 재시도 중..." : ""}
             </span>
           )}
           <button
             type="button"
-            onClick={() => handleSubmit(false)}
-            disabled={isPending || title.trim().length < 2 || !content}
-            className="h-8 px-4 rounded-full border border-black/10 dark:border-white/10 text-slate-400 text-xs font-medium hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-600 dark:hover:text-slate-200 transition-colors disabled:opacity-40"
+            onClick={() => setGuideOpen(true)}
+            className="size-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            title="마크다운 가이드"
           >
-            임시저장
+            <span className="material-symbols-outlined text-[18px]">help</span>
           </button>
           <button
             type="button"
             onClick={() => handleSubmit(true)}
             disabled={isPending || title.trim().length < 2 || !content}
-            className="h-8 px-4 rounded-full bg-primary hover:bg-primary/80 text-white dark:text-white text-xs font-medium transition-colors disabled:opacity-40"
+            className="h-8 px-4 rounded-full bg-primary hover:bg-primary/80 text-white dark:text-white text-xs font-medium transition-colors disabled:opacity-40 whitespace-nowrap"
           >
             {isPending ? "저장 중..." : "발행"}
           </button>
@@ -936,8 +948,8 @@ export function MarkdownEditor({
       </div>
 
       {/* Scrollable editor area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[960px] mx-auto px-6 py-10 space-y-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-[960px] mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-4 min-w-0">
           {/* Cover image */}
           <div>
             {coverImage ? (
@@ -999,6 +1011,12 @@ export function MarkdownEditor({
             placeholder="제목을 입력하세요"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                editorRef.current?.view?.focus();
+              }
+            }}
             className="w-full text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-slate-700 leading-tight"
             autoFocus
           />
@@ -1114,6 +1132,7 @@ export function MarkdownEditor({
             ref={editorRef}
             value={content}
             onChange={handleContentChange}
+            onUpdate={handleEditorUpdate}
             theme={editorTheme}
             extensions={editorExtensions}
             placeholder="마크다운으로 글을 작성하세요..."
@@ -1132,6 +1151,15 @@ export function MarkdownEditor({
         </div>
       </div>
 
+      {slashMenu && (
+        <SlashMenu
+          position={{ x: slashMenu.x, y: slashMenu.y }}
+          query={slashMenu.query}
+          onSelect={handleSlashSelect}
+          onClose={() => setSlashMenu(null)}
+        />
+      )}
+
       {ytPaste && (
         <YouTubePasteMenu
           url={ytPaste.url}
@@ -1147,6 +1175,25 @@ export function MarkdownEditor({
         imageSrc={cropImageSrc}
         onClose={handleCropClose}
         onConfirm={handleCropConfirm}
+      />
+
+      <MarkdownGuideModal
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        onInsertSample={(sample) => {
+          const view = editorRef.current?.view;
+          if (!view) {
+            setContent((c) => (c ? c + "\n\n" + sample : sample));
+            return;
+          }
+          const pos = view.state.doc.length;
+          const insert = (pos > 0 ? "\n\n" : "") + sample;
+          view.dispatch({
+            changes: { from: pos, insert },
+            selection: { anchor: pos + insert.length },
+          });
+          view.focus();
+        }}
       />
     </div>
   );

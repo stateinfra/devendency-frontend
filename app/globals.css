@@ -119,6 +119,11 @@
   background: #777;
 }
 
+/* Hide scrollbars for slash menu */
+.slash-menu::-webkit-scrollbar {
+  display: none;
+}
+
 /* Line clamp */
 .line-clamp-2 {
   display: -webkit-box;

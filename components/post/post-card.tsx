@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatDate, generateExcerpt, extractFirstImage } from "@/lib/utils";
+import { formatDate, generateExcerpt } from "@/lib/utils";
 import type { PostWithRelations } from "@/types";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { useTheme } from "@/components/theme-provider";
@@ -11,7 +11,7 @@ import { Avatar } from "@/components/ds";
 export function PostCard({ post }: { post: PostWithRelations }) {
   const router = useRouter();
   const { theme } = useTheme();
-  const thumbnail = post.coverImage || extractFirstImage(post.content || "");
+  const thumbnail = post.coverImage;
 
   return (
     <Link href={`/posts/${post.slug}`} className="block">

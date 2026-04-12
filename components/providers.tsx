@@ -10,7 +10,7 @@ function ThemedToaster() {
   return (
     <Toaster
       theme={theme === "dark" ? "dark" : "light"}
-      position="bottom-center"
+      position="top-center"
       gap={8}
       toastOptions={{
         style: {
@@ -22,6 +22,7 @@ function ThemedToaster() {
           fontFamily: "var(--font-sans)",
           boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
           padding: "12px 16px",
+          width: "min(520px, calc(100vw - 32px))",
         },
         classNames: {
           success: "!border-[#22c55e]/20",

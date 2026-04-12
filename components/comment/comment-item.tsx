@@ -66,7 +66,7 @@ export function CommentItem({
           <p className="text-sm text-gray-600 dark:text-[#dcddde]/70 whitespace-pre-wrap">
             {comment.content}
           </p>
-          <div className="flex gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1">
             {!isReply && (
               <Button
                 variant="ghost"

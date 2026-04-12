@@ -20,8 +20,8 @@ export async function registerUser(formData: FormData) {
   if (!rl.success)
     return { error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." };
 
-  const turnstileToken = formData.get("turnstileToken") as string;
-  if (turnstileToken && !(await verifyTurnstile(turnstileToken))) {
+  const turnstileToken = formData.get("turnstileToken") as string | null;
+  if (!(await verifyTurnstile(turnstileToken))) {
     return { error: "보안 인증에 실패했습니다. 다시 시도해주세요." };
   }
 

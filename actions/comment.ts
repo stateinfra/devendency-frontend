@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { commentSchema } from "@/lib/validations/comment";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { isAdmin } from "@/lib/db/helpers";
-import { verifyTurnstile } from "@/lib/turnstile";
+import { verifyTurnstile, normalizeForFilter } from "@/lib/turnstile";
 
 export async function createComment(postId: string, formData: FormData) {
   const session = await auth();
@@ -22,8 +22,8 @@ export async function createComment(postId: string, formData: FormData) {
     return { error: "이메일 인증 후 댓글을 작성할 수 있습니다" };
   }
 
-  const turnstileToken = formData.get("turnstileToken") as string;
-  if (turnstileToken && !(await verifyTurnstile(turnstileToken))) {
+  const turnstileToken = formData.get("turnstileToken") as string | null;
+  if (!(await verifyTurnstile(turnstileToken))) {
     return { error: "보안 인증에 실패했습니다. 다시 시도해주세요." };
   }
 
@@ -49,10 +49,10 @@ export async function createComment(postId: string, formData: FormData) {
   if (!post) return { error: "글을 찾을 수 없습니다" };
   if (!post.published) return { error: "임시저장 글에는 댓글을 작성할 수 없습니다" };
 
-  // 스팸 필터 체크
+  // 스팸 필터 체크 (NFKC + 공백/제로폭 제거)
   const filters = await db.query.spamFilters.findMany();
-  const contentLower = parsed.data.content.toLowerCase();
-  const blocked = filters.find((f) => contentLower.includes(f.pattern.toLowerCase()));
+  const normalized = normalizeForFilter(parsed.data.content);
+  const blocked = filters.find((f) => normalized.includes(normalizeForFilter(f.pattern)));
   if (blocked) {
     return { error: "스팸으로 감지되었습니다" };
   }

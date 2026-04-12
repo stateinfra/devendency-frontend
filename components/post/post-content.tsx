@@ -4,7 +4,6 @@ import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
-import rehypeRaw from "rehype-raw";
 import { MermaidDiagram } from "./mermaid-diagram";
 import { CodeCopyButton } from "./code-copy-button";
 import { ImageLightbox } from "./image-lightbox";
@@ -22,7 +21,7 @@ export function PostContent({ content }: { content: string }) {
     <div className="obsidian-md">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight, rehypeSlug]}
+        rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeSlug]}
         urlTransform={safeUrl}
         components={{
           code: ({ node, className, children, ...props }: any) => {

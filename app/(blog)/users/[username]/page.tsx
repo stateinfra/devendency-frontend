@@ -62,16 +62,11 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   if (!user) notFound();
 
   const isOwnProfile = session?.user?.id === user.id;
-  const validTabs = ["posts", "series", ...(isOwnProfile ? ["drafts"] : [])];
+  const validTabs = ["posts", "series"];
   const activeTab = validTabs.includes(tab || "") ? tab! : "posts";
 
   // 포스트 쿼리 조건
-  const postWhereConditions = [eq(posts.authorId, user.id)];
-  if (activeTab === "drafts") {
-    postWhereConditions.push(eq(posts.published, false));
-  } else {
-    postWhereConditions.push(eq(posts.published, true));
-  }
+  const postWhereConditions = [eq(posts.authorId, user.id), eq(posts.published, true)];
   if (q && activeTab !== "series") {
     postWhereConditions.push(
       or(ilike(posts.title, `%${q}%`), ilike(posts.content, `%${q}%`))!,
@@ -82,7 +77,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const [
     postResults,
     [{ postCount }],
-    draftCountResult,
     [{ followerCount }],
     [{ followingCount }],
     userSeriesList,
@@ -100,9 +94,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
         })
       : Promise.resolve([]),
     db.select({ postCount: count() }).from(posts).where(and(eq(posts.authorId, user.id), eq(posts.published, true))),
-    isOwnProfile
-      ? db.select({ draftCount: count() }).from(posts).where(and(eq(posts.authorId, user.id), eq(posts.published, false)))
-      : Promise.resolve([{ draftCount: 0 }]),
     db.select({ followerCount: count() }).from(follows).where(eq(follows.followingId, user.id)),
     db.select({ followingCount: count() }).from(follows).where(eq(follows.followerId, user.id)),
     db.query.series.findMany({
@@ -118,8 +109,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     }),
   ]);
 
-  const draftCount = draftCountResult[0].draftCount;
-
   const postsWithCounts = postResults.map((p: any) => ({
     ...p,
     _count: { comments: p.comments.length, likes: p.likes.length },
@@ -133,11 +122,9 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
       : false;
 
   const emptyMessage =
-    activeTab === "drafts"
-      ? (q ? `"${q}"에 대한 검색 결과가 없습니다.` : "임시저장된 글이 없습니다.")
-      : activeTab === "series"
-        ? "아직 시리즈가 없습니다."
-        : (q ? `"${q}"에 대한 검색 결과가 없습니다.` : "아직 작성한 글이 없습니다.");
+    activeTab === "series"
+      ? "아직 시리즈가 없습니다."
+      : (q ? `"${q}"에 대한 검색 결과가 없습니다.` : "아직 작성한 글이 없습니다.");
 
   return (
     <div className="w-full max-w-[768px] mx-auto py-6 sm:py-12 md:py-16">
@@ -198,21 +185,6 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
               >
                 시리즈
               </Link>
-              {isOwnProfile && (
-                <Link
-                  href={`/users/@${user.username}?tab=drafts`}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
-                    activeTab === "drafts"
-                      ? "border-primary text-primary"
-                      : "border-transparent text-slate-500 hover:text-gray-700 dark:hover:text-slate-300"
-                  }`}
-                >
-                  임시저장
-                  {draftCount > 0 && (
-                    <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10">{draftCount}</span>
-                  )}
-                </Link>
-              )}
             </div>
             {activeTab !== "series" && (
               <ProfilePostSearch initialQuery={q} username={user.username!} tab={activeTab} />

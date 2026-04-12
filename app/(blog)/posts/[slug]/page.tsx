@@ -15,7 +15,7 @@ import { ScrollToTop } from "@/components/post/scroll-to-top";
 import { ScrollProgress } from "@/components/post/scroll-progress";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { CommentList } from "@/components/comment/comment-list";
-import { formatDate, extractFirstImage } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/constants";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "글을 찾을 수 없습니다" };
 
   const url = `${SITE_CONFIG.url}/posts/${slug}`;
-  const ogImage = post.coverImage || extractFirstImage(post.content || "");
+  const ogImage = post.coverImage;
 
   return {
     title: post.title,

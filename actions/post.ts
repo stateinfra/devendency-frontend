@@ -12,6 +12,7 @@ import { generateExcerpt, extractFirstImage } from "@/lib/utils";
 import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { normalizeForFilter } from "@/lib/turnstile";
 
 const OWN_HOST = (process.env.S3_ENDPOINT || "").replace("/s3", "");
 const MAX_DOWNLOAD = 5 * 1024 * 1024; // 5MB
@@ -189,10 +190,10 @@ export async function createPost(formData: FormData) {
   } = parsed.data;
   const content = await processContentImages(rawContent, session.user.id);
 
-  // 스팸 필터 체크
+  // 스팸 필터 체크 (NFKC + 공백/제로폭 제거)
   const filters = await db.query.spamFilters.findMany();
-  const checkText = `${title} ${content}`.toLowerCase();
-  const blocked = filters.find((f) => checkText.includes(f.pattern.toLowerCase()));
+  const normalized = normalizeForFilter(`${title} ${content}`);
+  const blocked = filters.find((f) => normalized.includes(normalizeForFilter(f.pattern)));
   if (blocked) {
     return { error: "스팸으로 감지되었습니다" };
   }
@@ -207,32 +208,20 @@ export async function createPost(formData: FormData) {
 
   const MAX_DRAFTS = 3;
 
-  const post = await db.transaction(async (tx) => {
-    if (published) {
-      // 발행 시 해당 유저의 모든 임시저장 글 삭제
-      await tx
-        .delete(posts)
-        .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)));
-    } else {
-      // 임시저장 시 초과 초안 자동 삭제 (가장 오래된 것부터)
+  let post;
+  try {
+    post = await db.transaction(async (tx) => {
+    if (!published) {
+      // 임시저장 한도 초과 시 거부 (자동 삭제 X)
       const [{ draftCount }] = await tx
         .select({ draftCount: drizzleCount() })
         .from(posts)
         .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)));
 
       if (draftCount >= MAX_DRAFTS) {
-        const oldest = await tx
-          .select({ id: posts.id })
-          .from(posts)
-          .where(and(eq(posts.authorId, session.user.id), eq(posts.published, false)))
-          .orderBy(asc(posts.createdAt))
-          .limit(draftCount - MAX_DRAFTS + 1);
-
-        if (oldest.length > 0) {
-          for (const { id } of oldest) {
-            await tx.delete(posts).where(eq(posts.id, id));
-          }
-        }
+        throw new Error(
+          `임시저장은 최대 ${MAX_DRAFTS}개까지 가능합니다. 기존 임시저장 글을 삭제하거나 발행해주세요.`,
+        );
       }
     }
 
@@ -262,8 +251,11 @@ export async function createPost(formData: FormData) {
       );
     }
 
-    return newPost;
-  });
+      return newPost;
+    });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "글 저장에 실패했습니다" };
+  }
 
   revalidatePath("/");
   return { success: true, slug: post.slug, postId: post.id };
@@ -344,18 +336,6 @@ export async function updatePost(postId: string, formData: FormData) {
         updatedAt: new Date(),
       })
       .where(eq(posts.id, postId));
-
-    // 임시저장 → 발행 전환 시, 해당 유저의 다른 임시저장 글 삭제
-    if (published && !wasPublished) {
-      await tx
-        .delete(posts)
-        .where(
-          and(
-            eq(posts.authorId, post.authorId),
-            eq(posts.published, false),
-          ),
-        );
-    }
 
     if (tagConnections.length) {
       await tx.insert(postTags).values(
