@@ -78,6 +78,16 @@ export function PostContent({
               {children}
             </a>
           ),
+          p: ({ node, children, ...props }: any) => {
+            // Unwrap <p> when its sole non-whitespace child is an image
+            const kids = (node?.children ?? []).filter(
+              (c: any) => !(c.type === "text" && /^\s*$/.test(c.value)),
+            );
+            const onlyImage =
+              kids.length === 1 && kids[0].type === "element" && kids[0].tagName === "img";
+            if (onlyImage) return <>{children}</>;
+            return <p {...props}>{children}</p>;
+          },
           img: ({ node, src, alt, ...props }: any) =>
             src ? <ImageLightbox src={src} alt={alt || ""} {...props} /> : null,
         }}

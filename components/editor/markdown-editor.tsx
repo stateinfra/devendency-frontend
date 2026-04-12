@@ -160,6 +160,7 @@ const editorTheme = EditorView.theme(
         '"Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", sans-serif',
       caretColor: "#7f6df2",
       padding: "0",
+      paddingBottom: "50vh",
       backgroundColor: "var(--background) !important",
       minHeight: "60vh",
     },
@@ -606,6 +607,12 @@ export function MarkdownEditor({
     const line = view.state.doc.lineAt(cursor);
     const beforeCursor = line.text.slice(0, cursor - line.from);
 
+    const MENU_H = 320;
+    const flipY = (top: number, bottom: number) =>
+      bottom + MENU_H + 8 > window.innerHeight && top - MENU_H - 8 > 0
+        ? top - MENU_H - 8
+        : bottom + 4;
+
     // wiki-link: "[[query" not yet closed
     const wiki = beforeCursor.match(/\[\[([^\[\]\n]*)$/);
     if (wiki) {
@@ -615,7 +622,7 @@ export function MarkdownEditor({
       if (coords) {
         setWikiMenu({
           x: coords.left,
-          y: coords.bottom + 4,
+          y: flipY(coords.top, coords.bottom),
           from,
           query: wiki[1],
         });
@@ -640,7 +647,7 @@ export function MarkdownEditor({
       setSlashMenu(null);
       return;
     }
-    setSlashMenu({ x: coords.left, y: coords.bottom + 4, from, query });
+    setSlashMenu({ x: coords.left, y: flipY(coords.top, coords.bottom), from, query });
   }, []);
 
   const handleWikiSelect = useCallback(
