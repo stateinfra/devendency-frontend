@@ -56,6 +56,24 @@
   --border: rgba(0, 0, 0, 0.08);
   --ring: #7f6df2;
   --active-line: rgba(0, 0, 0, 0.025);
+
+  /* Typography tokens (editor + rendered content) */
+  --heading: #111111;
+  --strong: #000000;
+  --muted: #6b7280;
+  --link: #7f6df2;
+  --inline-code-fg: #d63384;
+  --inline-code-bg: rgba(0, 0, 0, 0.06);
+
+  /* Code syntax (light) */
+  --code-keyword: #d73a49;
+  --code-function: #6f42c1;
+  --code-string: #032f62;
+  --code-comment: #6a737d;
+  --code-number: #005cc5;
+  --code-variable: #e36209;
+  --code-inserted: #22863a;
+  --code-deleted: #b31d28;
 }
 :root.dark, .dark {
   --background: #202020;
@@ -67,6 +85,22 @@
   --border: rgba(255, 255, 255, 0.08);
   --ring: #7f6df2;
   --active-line: rgba(255, 255, 255, 0.03);
+
+  --heading: #e0e0e0;
+  --strong: #e8e8e8;
+  --muted: #a0a4b0;
+  --link: #a68bf0;
+  --inline-code-fg: #e06c9a;
+  --inline-code-bg: rgba(255, 255, 255, 0.08);
+
+  --code-keyword: #ff7b72;
+  --code-function: #d2a8ff;
+  --code-string: #a5d6ff;
+  --code-comment: #8b949e;
+  --code-number: #79c0ff;
+  --code-variable: #ffa657;
+  --code-inserted: #aff5b4;
+  --code-deleted: #ffdcd7;
 }
 
 @layer base {

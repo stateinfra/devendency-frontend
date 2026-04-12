@@ -83,7 +83,8 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard/posts/new)",
       "Bash(curl -s -o /dev/null -w \"/ %{http_code}\\\\n\" http://localhost:3000/)",
       "Bash(curl -s -o /dev/null -w \"/auth/login %{http_code}\\\\n\" http://localhost:3000/auth/login)",
-      "Bash(curl -s -o /dev/null -w \"/dashboard/posts/new %{http_code}\\\\n\" http://localhost:3000/dashboard/posts/new)"
+      "Bash(curl -s -o /dev/null -w \"/dashboard/posts/new %{http_code}\\\\n\" http://localhost:3000/dashboard/posts/new)",
+      "Bash(pnpm db:push)"
     ]
   }
 }

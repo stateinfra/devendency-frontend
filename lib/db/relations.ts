@@ -6,6 +6,7 @@ import {
   posts,
   tags,
   postTags,
+  postLinks,
   comments,
   follows,
   likes,
@@ -38,6 +39,21 @@ export const postsRelations = relations(posts, ({ one, many }) => ({
   comments: many(comments),
   likes: many(likes),
   series: one(series, { fields: [posts.seriesId], references: [series.id] }),
+  outgoingLinks: many(postLinks, { relationName: "outgoingLinks" }),
+  incomingLinks: many(postLinks, { relationName: "incomingLinks" }),
+}));
+
+export const postLinksRelations = relations(postLinks, ({ one }) => ({
+  fromPost: one(posts, {
+    fields: [postLinks.fromPostId],
+    references: [posts.id],
+    relationName: "outgoingLinks",
+  }),
+  toPost: one(posts, {
+    fields: [postLinks.toPostId],
+    references: [posts.id],
+    relationName: "incomingLinks",
+  }),
 }));
 
 export const seriesRelations = relations(series, ({ one, many }) => ({

@@ -210,6 +210,26 @@ export const likes = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.postId] })],
 );
 
+// ── PostLink (wiki-style backlinks) ──
+export const postLinks = pgTable(
+  "PostLink",
+  {
+    fromPostId: uuid("fromPostId")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    toSlug: text("toSlug").notNull(),
+    toPostId: uuid("toPostId").references(() => posts.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.fromPostId, table.toSlug] }),
+    index("PostLink_toPostId_idx").on(table.toPostId),
+    index("PostLink_toSlug_idx").on(table.toSlug),
+  ],
+);
+
 // ── Report ──
 export const reportTypeEnum = pgEnum("ReportType", ["POST", "COMMENT"]);
 export const reportStatusEnum = pgEnum("ReportStatus", ["PENDING", "RESOLVED", "DISMISSED"]);

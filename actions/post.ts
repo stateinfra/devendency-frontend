@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { posts, tags, postTags, likes, users, spamFilters } from "@/lib/db/schema";
+import { posts, tags, postTags, postLinks, likes, users, spamFilters } from "@/lib/db/schema";
 import { eq, and, asc, lt, count as drizzleCount, notExists, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
@@ -13,6 +13,29 @@ import { uploadImage } from "@/lib/s3";
 import crypto from "crypto";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { normalizeForFilter } from "@/lib/turnstile";
+import { extractWikiLinks } from "@/lib/wiki-links";
+import { inArray } from "drizzle-orm";
+
+async function syncPostLinks(postId: string, content: string) {
+  const slugs = extractWikiLinks(content);
+
+  await db.delete(postLinks).where(eq(postLinks.fromPostId, postId));
+  if (slugs.length === 0) return;
+
+  const targets = await db.query.posts.findMany({
+    where: inArray(posts.slug, slugs),
+    columns: { id: true, slug: true },
+  });
+  const bySlug = new Map(targets.map((t) => [t.slug, t.id]));
+
+  await db.insert(postLinks).values(
+    slugs.map((slug) => ({
+      fromPostId: postId,
+      toSlug: slug,
+      toPostId: bySlug.get(slug) ?? null,
+    })),
+  );
+}
 
 const OWN_HOST = (process.env.S3_ENDPOINT || "").replace("/s3", "");
 const MAX_DOWNLOAD = 5 * 1024 * 1024; // 5MB
@@ -257,6 +280,8 @@ export async function createPost(formData: FormData) {
     return { error: e instanceof Error ? e.message : "글 저장에 실패했습니다" };
   }
 
+  await syncPostLinks(post.id, content);
+
   revalidatePath("/");
   return { success: true, slug: post.slug, postId: post.id };
 }
@@ -346,6 +371,8 @@ export async function updatePost(postId: string, formData: FormData) {
       );
     }
   });
+
+  await syncPostLinks(postId, content);
 
   revalidatePath("/");
   revalidatePath(`/posts/${post.slug}`);

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { posts, likes, comments } from "@/lib/db/schema";
-import { eq, and, isNull, desc, asc, count } from "drizzle-orm";
+import { posts, likes, comments, postLinks } from "@/lib/db/schema";
+import { eq, and, isNull, desc, asc, count, inArray } from "drizzle-orm";
+import { extractWikiLinks } from "@/lib/wiki-links";
 import { auth } from "@/lib/auth";
 import { PostContent } from "@/components/post/post-content";
+import { Backlinks } from "@/components/post/backlinks";
 import { PostActions } from "@/components/post/post-actions";
 import { LikeProvider } from "@/components/post/like-context";
 import { DeletePostButton } from "@/components/post/delete-post-button";
@@ -101,6 +103,34 @@ export default async function PostPage({ params }: Props) {
         columns: { id: true, title: true, slug: true, seriesOrder: true },
       })
     : [];
+
+  // Resolve wiki-links in content to known slugs + titles (for rendering)
+  const wikiSlugs = extractWikiLinks(post.content);
+  const linkedPostMeta = wikiSlugs.length
+    ? await db.query.posts.findMany({
+        where: and(inArray(posts.slug, wikiSlugs), eq(posts.published, true)),
+        columns: { slug: true, title: true },
+      })
+    : [];
+  const knownSlugs = new Set(linkedPostMeta.map((p) => p.slug));
+  const slugTitles = new Map(linkedPostMeta.map((p) => [p.slug, p.title]));
+
+  // Backlinks — posts that link TO this one (by slug, resolved or not)
+  const backlinks = await db
+    .select({
+      slug: posts.slug,
+      title: posts.title,
+    })
+    .from(postLinks)
+    .innerJoin(posts, eq(postLinks.fromPostId, posts.id))
+    .where(
+      and(
+        eq(postLinks.toSlug, post.slug),
+        eq(posts.published, true),
+      ),
+    )
+    .orderBy(desc(posts.publishedAt))
+    .limit(50);
 
   const [[{ likeCount }], topComments, likedRow] = await Promise.all([
     db.select({ likeCount: count() }).from(likes).where(eq(likes.postId, post.id)),
@@ -268,7 +298,12 @@ export default async function PostPage({ params }: Props) {
             </div>
           </header>
 
-          <PostContent content={post.content} />
+          <PostContent
+            content={post.content}
+            knownSlugs={knownSlugs}
+            slugTitles={slugTitles}
+          />
+          <Backlinks items={backlinks} />
 
           {/* 시리즈 하단 네비게이션 (시리즈가 있는 경우 반복) */}
           {post.series && seriesPosts.length > 0 && (

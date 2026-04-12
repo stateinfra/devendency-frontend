@@ -9,7 +9,9 @@ import { languages } from "@codemirror/language-data";
 import { EditorView, ViewPlugin, Decoration, WidgetType, type DecorationSet } from "@codemirror/view";
 import { syntaxHighlighting, HighlightStyle, syntaxTree } from "@codemirror/language";
 import { StateField } from "@codemirror/state";
+import { autocompletion, type CompletionContext } from "@codemirror/autocomplete";
 import { tags } from "@lezer/highlight";
+import { searchPostsForAutocomplete } from "@/actions/post-search";
 import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
 import { ImageCropModal } from "./cover-image-crop-modal";
@@ -160,6 +162,7 @@ const editorTheme = EditorView.theme(
       caretColor: "#7f6df2",
       padding: "0",
       backgroundColor: "var(--background) !important",
+      minHeight: "60vh",
     },
     ".cm-cursor, .cm-dropCursor": {
       borderLeftColor: "#7f6df2",
@@ -186,6 +189,7 @@ const editorTheme = EditorView.theme(
     },
     ".cm-scroller": {
       overflow: "auto",
+      minHeight: "60vh",
     },
     ".cm-line": {
       padding: "1px 0",
@@ -330,85 +334,84 @@ const imagePreviewField = StateField.define<DecorationSet>({
 });
 
 const markdownHighlighting = HighlightStyle.define([
-  {
-    tag: tags.heading1,
-    fontSize: "1.8em",
-    fontWeight: "700",
-    color: "#e0e0e0",
-  },
-  {
-    tag: tags.heading2,
-    fontSize: "1.4em",
-    fontWeight: "700",
-    color: "#e0e0e0",
-  },
-  {
-    tag: tags.heading3,
-    fontSize: "1.2em",
-    fontWeight: "600",
-    color: "#e0e0e0",
-  },
-  {
-    tag: tags.heading4,
-    fontSize: "1.1em",
-    fontWeight: "600",
-    color: "#dcddde",
-  },
-  { tag: tags.strong, fontWeight: "700", color: "#e8e8e8" },
+  { tag: tags.heading1, fontSize: "1.8em", fontWeight: "700", color: "var(--heading)" },
+  { tag: tags.heading2, fontSize: "1.4em", fontWeight: "700", color: "var(--heading)" },
+  { tag: tags.heading3, fontSize: "1.2em", fontWeight: "600", color: "var(--heading)" },
+  { tag: tags.heading4, fontSize: "1.1em", fontWeight: "600", color: "var(--heading)" },
+  { tag: tags.strong, fontWeight: "700", color: "var(--strong)" },
   { tag: tags.emphasis, fontStyle: "italic" },
-  {
-    tag: tags.strikethrough,
-    textDecoration: "line-through",
-    color: "#6b6f80",
-  },
-  { tag: tags.link, color: "#a68bf0" },
-  { tag: tags.url, color: "#7f6df2" },
+  { tag: tags.strikethrough, textDecoration: "line-through", color: "var(--muted)" },
+  { tag: tags.link, color: "var(--link)" },
+  { tag: tags.url, color: "var(--primary)" },
   {
     tag: tags.monospace,
     fontFamily: '"Fira Code", "JetBrains Mono", monospace',
-    color: "#e06c9a",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    color: "var(--inline-code-fg)",
+    backgroundColor: "var(--inline-code-bg)",
     borderRadius: "3px",
   },
-  { tag: tags.quote, color: "#a0a4b0", fontStyle: "italic" },
-  { tag: tags.processingInstruction, color: "#555" },
-  { tag: tags.meta, color: "#555" },
-  { tag: tags.contentSeparator, color: "#555" },
-  { tag: tags.list, color: "#6b6f80" },
+  { tag: tags.quote, color: "var(--muted)", fontStyle: "italic" },
+  { tag: tags.processingInstruction, color: "var(--muted)" },
+  { tag: tags.meta, color: "var(--muted)" },
+  { tag: tags.contentSeparator, color: "var(--muted)" },
+  { tag: tags.list, color: "var(--muted)" },
 
-  // Code syntax highlighting (matches globals.css hljs theme)
-  { tag: tags.keyword, color: "#ff7b72", fontWeight: "600" },
-  { tag: tags.operator, color: "#ff7b72" },
-  { tag: tags.definitionKeyword, color: "#ff7b72", fontWeight: "600" },
-  { tag: tags.controlKeyword, color: "#ff7b72", fontWeight: "600" },
-  { tag: tags.moduleKeyword, color: "#ff7b72", fontWeight: "600" },
-  { tag: tags.function(tags.definition(tags.variableName)), color: "#d2a8ff" },
-  { tag: tags.function(tags.variableName), color: "#d2a8ff" },
-  { tag: tags.definition(tags.className), color: "#d2a8ff" },
-  { tag: tags.definition(tags.typeName), color: "#d2a8ff" },
-  { tag: tags.typeName, color: "#79c0ff" },
-  { tag: tags.className, color: "#d2a8ff" },
-  { tag: tags.string, color: "#a5d6ff" },
-  { tag: tags.special(tags.string), color: "#a5d6ff" },
-  { tag: tags.regexp, color: "#a5d6ff" },
-  { tag: tags.number, color: "#79c0ff" },
-  { tag: tags.bool, color: "#79c0ff" },
-  { tag: tags.null, color: "#79c0ff" },
-  { tag: tags.variableName, color: "#dcddde" },
-  { tag: tags.propertyName, color: "#ffa657" },
-  { tag: tags.definition(tags.propertyName), color: "#ffa657" },
-  { tag: tags.comment, color: "#8b949e", fontStyle: "italic" },
-  { tag: tags.lineComment, color: "#8b949e", fontStyle: "italic" },
-  { tag: tags.blockComment, color: "#8b949e", fontStyle: "italic" },
-  { tag: tags.docComment, color: "#8b949e", fontStyle: "italic" },
-  { tag: tags.tagName, color: "#ff7b72" },
-  { tag: tags.attributeName, color: "#79c0ff" },
-  { tag: tags.attributeValue, color: "#a5d6ff" },
-  { tag: tags.atom, color: "#79c0ff" },
-  { tag: tags.self, color: "#ff7b72" },
-  { tag: tags.inserted, color: "#aff5b4" },
-  { tag: tags.deleted, color: "#ffdcd7" },
+  // Code syntax highlighting (matches globals.css hljs theme, token-driven)
+  { tag: tags.keyword, color: "var(--code-keyword)", fontWeight: "600" },
+  { tag: tags.operator, color: "var(--code-keyword)" },
+  { tag: tags.definitionKeyword, color: "var(--code-keyword)", fontWeight: "600" },
+  { tag: tags.controlKeyword, color: "var(--code-keyword)", fontWeight: "600" },
+  { tag: tags.moduleKeyword, color: "var(--code-keyword)", fontWeight: "600" },
+  { tag: tags.function(tags.definition(tags.variableName)), color: "var(--code-function)" },
+  { tag: tags.function(tags.variableName), color: "var(--code-function)" },
+  { tag: tags.definition(tags.className), color: "var(--code-function)" },
+  { tag: tags.definition(tags.typeName), color: "var(--code-function)" },
+  { tag: tags.typeName, color: "var(--code-number)" },
+  { tag: tags.className, color: "var(--code-function)" },
+  { tag: tags.string, color: "var(--code-string)" },
+  { tag: tags.special(tags.string), color: "var(--code-string)" },
+  { tag: tags.regexp, color: "var(--code-string)" },
+  { tag: tags.number, color: "var(--code-number)" },
+  { tag: tags.bool, color: "var(--code-number)" },
+  { tag: tags.null, color: "var(--code-number)" },
+  { tag: tags.variableName, color: "var(--foreground)" },
+  { tag: tags.propertyName, color: "var(--code-variable)" },
+  { tag: tags.definition(tags.propertyName), color: "var(--code-variable)" },
+  { tag: tags.comment, color: "var(--code-comment)", fontStyle: "italic" },
+  { tag: tags.lineComment, color: "var(--code-comment)", fontStyle: "italic" },
+  { tag: tags.blockComment, color: "var(--code-comment)", fontStyle: "italic" },
+  { tag: tags.docComment, color: "var(--code-comment)", fontStyle: "italic" },
+  { tag: tags.tagName, color: "var(--code-keyword)" },
+  { tag: tags.attributeName, color: "var(--code-number)" },
+  { tag: tags.attributeValue, color: "var(--code-string)" },
+  { tag: tags.atom, color: "var(--code-number)" },
+  { tag: tags.self, color: "var(--code-keyword)" },
+  { tag: tags.inserted, color: "var(--code-inserted)" },
+  { tag: tags.deleted, color: "var(--code-deleted)" },
 ]);
+
+async function wikiLinkCompletions(ctx: CompletionContext) {
+  // match "[[query" before cursor, without closing brackets
+  const before = ctx.matchBefore(/\[\[([^\[\]\n]*)$/);
+  if (!before) return null;
+  const query = before.text.slice(2); // strip leading [[
+  if (!ctx.explicit && query.length === 0) return null;
+
+  const rows = await searchPostsForAutocomplete(query);
+  if (rows.length === 0) return null;
+
+  return {
+    from: before.from + 2, // after "[["
+    to: ctx.pos,
+    options: rows.map((p) => ({
+      label: p.title,
+      detail: p.slug,
+      apply: `${p.slug}]]`,
+      type: "text",
+    })),
+    validFor: /^[^\[\]\n]*$/,
+  };
+}
 
 const editorExtensions = [
   markdown({ base: markdownLanguage, codeLanguages: languages }),
@@ -417,6 +420,11 @@ const editorExtensions = [
   codeBlockPlugin,
   imagePreviewField,
   imageUploadExtension,
+  autocompletion({
+    override: [wikiLinkCompletions],
+    activateOnTyping: true,
+    closeOnBlur: true,
+  }),
 ];
 
 export function MarkdownEditor({
@@ -792,7 +800,7 @@ export function MarkdownEditor({
         backup.title !== (initialData?.title || "") ||
         backup.content !== (initialData?.content || "");
       if (hasBackupContent && differsFromInitial) {
-        toast("저장되지 않은 이전 작업이 있습니다. 복원하시겠습니까?", {
+        const toastId = toast("저장되지 않은 이전 작업이 있습니다.", {
           action: {
             label: "복원",
             onClick: () => {
@@ -804,7 +812,18 @@ export function MarkdownEditor({
               toast.success("이전 작업이 복원되었습니다");
             },
           },
-          duration: 10000,
+          cancel: {
+            label: "새로 시작",
+            onClick: () => {
+              try {
+                localStorage.removeItem(key);
+              } catch {
+                /* ignore */
+              }
+              toast.dismiss(toastId);
+            },
+          },
+          duration: 15000,
         });
       }
     } catch {
@@ -1017,7 +1036,8 @@ export function MarkdownEditor({
                 editorRef.current?.view?.focus();
               }
             }}
-            className="w-full text-4xl font-bold bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-slate-700 leading-tight"
+            className="w-full text-4xl font-bold bg-transparent border-none outline-none leading-tight"
+            style={{ color: "var(--heading)" }}
             autoFocus
           />
 
@@ -1144,7 +1164,7 @@ export function MarkdownEditor({
               highlightSelectionMatches: true,
               bracketMatching: false,
               closeBrackets: false,
-              autocompletion: false,
+              autocompletion: false, // handled by our extension (wiki-link only)
               indentOnInput: true,
             }}
           />

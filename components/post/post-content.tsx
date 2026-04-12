@@ -14,8 +14,29 @@ function safeUrl(url: string): string {
   return "";
 }
 
-export function PostContent({ content }: { content: string }) {
-  const cleaned = content.replace(/!\[[^\]]*\]\(\s*\)/g, "");
+export function PostContent({
+  content,
+  knownSlugs = new Set(),
+  slugTitles = new Map(),
+}: {
+  content: string;
+  /** Set of existing post slugs for [[wiki-link]] resolution. */
+  knownSlugs?: Set<string>;
+  slugTitles?: Map<string, string>;
+}) {
+  const withWikiLinks = content.replace(
+    /\[\[([^\[\]|\n]+?)(?:\|([^\]]+))?\]\]/g,
+    (_m, rawSlug: string, label?: string) => {
+      const slug = rawSlug.trim();
+      const exists = knownSlugs.has(slug);
+      const text = (label?.trim() || slugTitles.get(slug) || slug).trim();
+      const url = `/posts/${encodeURIComponent(slug)}`;
+      return exists
+        ? `[${text}](${url})`
+        : `[${text}](${url} "아직 작성되지 않은 글")`;
+    },
+  );
+  const cleaned = withWikiLinks.replace(/!\[[^\]]*\]\(\s*\)/g, "");
 
   return (
     <div className="obsidian-md">
