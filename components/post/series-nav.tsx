@@ -32,30 +32,35 @@ export function SeriesNav({
   return (
     <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card overflow-hidden">
       {/* 시리즈 헤더 */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full px-5 py-4 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
-      >
-        <div className="flex items-center gap-2 text-left">
+      <div className="w-full px-5 py-4 flex items-center justify-between">
+        <Link
+          href={`/series/${seriesSlug}`}
+          className="flex items-center gap-2 text-left group min-w-0"
+        >
           <span className="material-symbols-outlined text-primary text-[20px]">
-            auto_stories
+            book_2
           </span>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs text-slate-500 font-medium">시리즈</div>
-            <div className="text-sm font-bold text-gray-900 dark:text-white">{seriesName}</div>
+            <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate">
+              {seriesName}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">
+        </Link>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 text-xs text-slate-500 px-2 py-1 rounded hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors flex-shrink-0"
+        >
+          <span>
             {currentIndex + 1} / {posts.length}
           </span>
           <span
-            className={`material-symbols-outlined text-[18px] text-slate-500 transition-transform ${expanded ? "rotate-180" : ""}`}
+            className={`material-symbols-outlined text-[18px] transition-transform ${expanded ? "rotate-180" : ""}`}
           >
             expand_more
           </span>
-        </div>
-      </button>
+        </button>
+      </div>
 
       {/* 글 목록 (접기/펼치기) */}
       {expanded && (

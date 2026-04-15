@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { tags, postTags, posts } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { asc, exists, sql, eq, and } from "drizzle-orm";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -15,7 +16,7 @@ export default async function TagsPage() {
       name: tags.name,
       slug: tags.slug,
       _count: {
-        posts: sql<number>`(SELECT count(*) FROM "PostTag" INNER JOIN "Post" ON "Post"."id" = "PostTag"."postId" WHERE "PostTag"."tagId" = "Tag"."id" AND "Post"."published" = true)::int`,
+        posts: sql<number>`(SELECT count(*) FROM "PostTag" pt INNER JOIN "Post" p ON p."id" = pt."postId" LEFT JOIN "Series" s ON s."id" = p."seriesId" WHERE pt."tagId" = "Tag"."id" AND p."published" = true AND (p."seriesId" IS NULL OR s."visibility" = 'public'))::int`,
       },
     })
     .from(tags)
@@ -25,7 +26,7 @@ export default async function TagsPage() {
           .select({ one: sql`1` })
           .from(postTags)
           .innerJoin(posts, eq(posts.id, postTags.postId))
-          .where(and(eq(postTags.tagId, tags.id), eq(posts.published, true))),
+          .where(and(eq(postTags.tagId, tags.id), publicPostWhere)),
       ),
     )
     .orderBy(asc(tags.name));

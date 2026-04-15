@@ -31,3 +31,6 @@ export { Pagination } from "./Pagination";
 export { Spinner } from "./Spinner";
 export { Skeleton } from "./Skeleton";
 export { EmptyState } from "./EmptyState";
+
+// Iconography
+export { Icon, ICON_SIZES, ICON_WEIGHTS, type IconSize, type IconWeight } from "./Icon";

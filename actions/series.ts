@@ -13,7 +13,8 @@ export async function createSeries(formData: FormData) {
   if (!session?.user) return { error: "로그인이 필요합니다" };
 
   const name = (formData.get("name") as string)?.trim();
-  const description = (formData.get("description") as string)?.trim() || null;
+  const visibility =
+    formData.get("visibility") === "private" ? "private" : "public";
 
   if (!name || name.length > 100) {
     return { error: "시리즈 이름을 입력해주세요 (최대 100자)" };
@@ -29,7 +30,7 @@ export async function createSeries(formData: FormData) {
     .values({
       name,
       slug: finalSlug,
-      description,
+      visibility,
       authorId: session.user.id,
     })
     .returning();
@@ -49,7 +50,6 @@ export async function updateSeries(seriesId: string, formData: FormData) {
   if (s.authorId !== session.user.id) return { error: "권한이 없습니다" };
 
   const name = (formData.get("name") as string)?.trim();
-  const description = (formData.get("description") as string)?.trim() || null;
 
   if (!name || name.length > 100) {
     return { error: "시리즈 이름을 입력해주세요 (최대 100자)" };
@@ -57,12 +57,37 @@ export async function updateSeries(seriesId: string, formData: FormData) {
 
   await db
     .update(series)
-    .set({ name, description, updatedAt: new Date() })
+    .set({ name, updatedAt: new Date() })
     .where(eq(series.id, seriesId));
 
   revalidatePath("/");
+  revalidatePath(`/series/${s.slug}`);
   return { success: true };
 }
+
+export async function setSeriesVisibility(
+  seriesId: string,
+  visibility: "public" | "private",
+) {
+  const session = await auth();
+  if (!session?.user) return { error: "로그인이 필요합니다" };
+
+  const s = await db.query.series.findFirst({
+    where: eq(series.id, seriesId),
+  });
+  if (!s) return { error: "시리즈를 찾을 수 없습니다" };
+  if (s.authorId !== session.user.id) return { error: "권한이 없습니다" };
+
+  await db
+    .update(series)
+    .set({ visibility, updatedAt: new Date() })
+    .where(eq(series.id, seriesId));
+
+  revalidatePath("/");
+  revalidatePath(`/series/${s.slug}`);
+  return { success: true };
+}
+
 
 export async function deleteSeries(seriesId: string) {
   const session = await auth();

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { users, posts, likes, follows, series } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { eq, and, or, ilike, desc, asc, count, gte, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { PostCard } from "@/components/post/post-card";
@@ -69,7 +70,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
   const activeTab = validTabs.includes(tab || "") ? tab! : "posts";
 
   // 포스트 쿼리 조건
-  const postWhereConditions = [eq(posts.authorId, user.id), eq(posts.published, true)];
+  const postWhereConditions = [eq(posts.authorId, user.id), publicPostWhere];
   if (q && activeTab !== "series") {
     postWhereConditions.push(
       or(ilike(posts.title, `%${q}%`), ilike(posts.content, `%${q}%`))!,
@@ -89,7 +90,7 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
     .where(
       and(
         eq(posts.authorId, user.id),
-        eq(posts.published, true),
+        publicPostWhere,
         gte(posts.publishedAt, yearAgo),
       ),
     )
@@ -116,11 +117,13 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
           },
         })
       : Promise.resolve([]),
-    db.select({ postCount: count() }).from(posts).where(and(eq(posts.authorId, user.id), eq(posts.published, true))),
+    db.select({ postCount: count() }).from(posts).where(and(eq(posts.authorId, user.id), publicPostWhere)),
     db.select({ followerCount: count() }).from(follows).where(eq(follows.followingId, user.id)),
     db.select({ followingCount: count() }).from(follows).where(eq(follows.followerId, user.id)),
     db.query.series.findMany({
-      where: eq(series.authorId, user.id),
+      where: isOwnProfile
+        ? eq(series.authorId, user.id)
+        : and(eq(series.authorId, user.id), eq(series.visibility, "public")),
       orderBy: desc(series.createdAt),
       with: {
         posts: {
@@ -239,25 +242,28 @@ export default async function UserProfilePage({ params, searchParams }: Props) {
             ) : (
               <div className="space-y-4">
                 {userSeriesList.map((s) => (
-                  <div
+                  <Link
                     key={s.id}
-                    className="p-5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                    href={`/series/${s.slug}`}
+                    className="block p-5 rounded-xl border border-black/[0.08] dark:border-white/[0.08] bg-card hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="material-symbols-outlined text-primary text-[18px]">auto_stories</span>
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="material-symbols-outlined text-primary text-[18px]">book_2</span>
                           <h3 className="font-bold text-gray-900 dark:text-white truncate">{s.name}</h3>
+                          {isOwnProfile && s.visibility === "private" && (
+                            <span className="px-2 py-0.5 text-[11px] rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                              Private
+                            </span>
+                          )}
                         </div>
-                        {s.description && (
-                          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 line-clamp-2">{s.description}</p>
-                        )}
                       </div>
                       <span className="text-xs text-slate-500 flex-shrink-0 mt-1">
                         {s.posts.length}개의 글
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )

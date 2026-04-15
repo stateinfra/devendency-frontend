@@ -136,16 +136,17 @@ type SeriesOption = { id: string; name: string };
 type MarkdownEditorProps = {
   postId?: string;
   initialData?: {
-    title: string;
-    content: string;
-    tagNames: string[];
-    published: boolean;
+    title?: string;
+    content?: string;
+    tagNames?: string[];
+    published?: boolean;
     slug?: string;
     coverImage?: string | null;
     seriesId?: string | null;
   };
   tags: Tag[];
   userSeries?: SeriesOption[];
+  seriesLabel?: string | null;
 };
 
 const editorTheme = EditorView.theme(
@@ -405,6 +406,7 @@ export function MarkdownEditor({
   initialData,
   tags: availableTags,
   userSeries = [],
+  seriesLabel = null,
 }: MarkdownEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -1144,49 +1146,15 @@ export function MarkdownEditor({
             )}
           </div>
 
-          {/* Series selector */}
-          {userSeries.length > 0 && (
-            <div className="relative" ref={seriesDropdownRef}>
-              {selectedSeriesId ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-lg font-medium">
-                  <span className="material-symbols-outlined text-[14px]">auto_stories</span>
-                  {userSeries.find((s) => s.id === selectedSeriesId)?.name}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSeriesId("")}
-                    className="hover:text-red-400 transition-colors ml-0.5"
-                  >
-                    <span className="material-symbols-outlined text-[12px]">close</span>
-                  </button>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowSeriesDropdown((v) => !v)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-500 hover:text-slate-300 rounded-lg border border-dashed border-black/[0.08] dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[14px]">auto_stories</span>
-                  시리즈에 추가
-                </button>
-              )}
-              {showSeriesDropdown && !selectedSeriesId && (
-                <div className="absolute z-10 top-full left-0 mt-1 bg-white dark:bg-[#2a2a2a] border border-black/[0.08] dark:border-white/[0.08] rounded-lg shadow-xl min-w-[200px] py-1">
-                  {userSeries.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedSeriesId(s.id);
-                        setShowSeriesDropdown(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs text-slate-400 hover:bg-black/[0.06] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-[14px] text-slate-600">auto_stories</span>
-                      {s.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+          {/* 시리즈 라벨 (읽기 전용, 시리즈 상세 페이지에서 작성 시작 시) */}
+          {seriesLabel && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="material-symbols-outlined text-[14px] text-primary">
+                book_2
+              </span>
+              <span className="text-gray-700 dark:text-slate-300">
+                시리즈 <strong className="font-semibold">{seriesLabel}</strong>에 작성 중
+              </span>
             </div>
           )}
 

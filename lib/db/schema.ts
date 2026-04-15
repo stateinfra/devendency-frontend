@@ -189,7 +189,9 @@ export const series = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
-    description: text("description"),
+    visibility: text("visibility", { enum: ["public", "private"] })
+      .notNull()
+      .default("public"),
     authorId: uuid("authorId")
       .notNull()
       .references(() => users.id),

@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { posts, tags, postTags, postLinks, likes, users, spamFilters } from "@/lib/db/schema";
-import { eq, and, asc, lt, count as drizzleCount, notExists, sql } from "drizzle-orm";
+import { posts, tags, postTags, postLinks, likes, users, spamFilters, series } from "@/lib/db/schema";
+import { eq, and, asc, lt, count as drizzleCount, notExists, sql, isNull, or } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { postSchema } from "@/lib/validations/post";
 import { isAdmin } from "@/lib/db/helpers";
@@ -421,8 +421,12 @@ export async function toggleLike(postId: string) {
 
   const post = await db.query.posts.findFirst({
     where: eq(posts.id, postId),
+    with: { series: { columns: { visibility: true } } },
   });
   if (!post || !post.published) return { error: "글을 찾을 수 없습니다" };
+  if (post.series && post.series.visibility === "private") {
+    return { error: "글을 찾을 수 없습니다" };
+  }
 
   const existing = await db.query.likes.findFirst({
     where: and(

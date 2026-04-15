@@ -41,9 +41,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     with: {
       author: { columns: { name: true } },
       tags: { with: { tag: { columns: { name: true } } } },
+      series: { columns: { visibility: true } },
     },
   });
   if (!post) return { title: "글을 찾을 수 없습니다" };
+  if (post.series && post.series.visibility === "private") {
+    return { title: "글을 찾을 수 없습니다" };
+  }
 
   const url = `${SITE_CONFIG.url}/posts/${slug}`;
   const ogImage = post.coverImage;
@@ -91,7 +95,11 @@ export default async function PostPage({ params }: Props) {
     },
   });
 
-  if (!post || (!post.published && post.authorId !== session?.user?.id)) {
+  const isAuthorView = post?.authorId === session?.user?.id;
+  if (!post || (!post.published && !isAuthorView)) {
+    notFound();
+  }
+  if (post.series && post.series.visibility === "private" && !isAuthorView) {
     notFound();
   }
 

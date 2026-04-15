@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { posts, postTags, tags, users } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { and, eq, or, ilike, desc, sql, exists, inArray } from "drizzle-orm";
 import { POSTS_PER_PAGE } from "@/lib/constants";
 import { parseQueryTerms, escapeLike, makeSnippet } from "@/lib/search-snippet";
@@ -62,7 +63,7 @@ export default async function SearchPage({ searchParams }: Props) {
     ),
   );
 
-  const whereCondition = and(eq(posts.published, true), ...termConditions);
+  const whereCondition = and(publicPostWhere, ...termConditions);
 
   // Score: title hits (×5) + tag hits (×3) + content hits (×1). Additive per term.
   const scoreExpr = sql<number>`(${sql.join(

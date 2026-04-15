@@ -17,6 +17,12 @@ export default async function SeriesPage() {
   const userSeries = await db.query.series.findMany({
     where: eq(series.authorId, session.user.id),
     orderBy: asc(series.createdAt),
+    columns: {
+      id: true,
+      name: true,
+      slug: true,
+      visibility: true,
+    },
     with: {
       posts: {
         orderBy: asc(posts.seriesOrder),

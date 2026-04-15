@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { publicPostWhere } from "@/lib/db/post-visibility";
+import { desc } from "drizzle-orm";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export async function GET() {
   const allPosts = await db.query.posts.findMany({
-    where: eq(posts.published, true),
+    where: publicPostWhere,
     orderBy: desc(posts.publishedAt),
     limit: 50,
     with: {

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { tags, posts, postTags } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { eq, and, desc, count, inArray } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { POSTS_PER_PAGE } from "@/lib/constants";
@@ -46,7 +47,7 @@ export default async function TagPage({ params, searchParams }: Props) {
     );
   }
 
-  const whereCondition = and(eq(posts.published, true), inArray(posts.id, ids));
+  const whereCondition = and(publicPostWhere, inArray(posts.id, ids));
 
   const [postResults, [{ total }]] = await Promise.all([
     db.query.posts.findMany({

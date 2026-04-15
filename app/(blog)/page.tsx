@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { posts, follows } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { eq, desc, and, inArray, sql, count } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { FeedTabs } from "@/components/post/feed-tabs";
@@ -27,11 +28,11 @@ export default async function HomePage({ searchParams }: Props) {
       db
         .select({ postId: posts.id })
         .from(posts)
-        .where(and(eq(posts.published, true), eq(posts.isAnnouncement, false)))
+        .where(and(publicPostWhere, eq(posts.isAnnouncement, false)))
         .orderBy(desc(likeCountExpr))
         .limit(POSTS_PER_PAGE)
         .offset((page - 1) * POSTS_PER_PAGE),
-      db.select({ total: count() }).from(posts).where(and(eq(posts.published, true), eq(posts.isAnnouncement, false))),
+      db.select({ total: count() }).from(posts).where(and(publicPostWhere, eq(posts.isAnnouncement, false))),
     ]);
 
     const totalPages = Math.ceil(total / POSTS_PER_PAGE);
@@ -72,7 +73,7 @@ export default async function HomePage({ searchParams }: Props) {
   }
 
   // ── latest / following 탭 ──
-  let whereCondition = and(eq(posts.published, true), eq(posts.isAnnouncement, false))!;
+  let whereCondition = and(publicPostWhere, eq(posts.isAnnouncement, false))!;
 
   if (tab === "following" && session?.user?.id) {
     const following = await db.query.follows.findMany({
@@ -82,7 +83,7 @@ export default async function HomePage({ searchParams }: Props) {
     const followingIds = following.map((f) => f.followingId);
     if (followingIds.length > 0) {
       whereCondition = and(
-        eq(posts.published, true),
+        publicPostWhere,
         eq(posts.isAnnouncement, false),
         inArray(posts.authorId, followingIds),
       )!;

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { posts, tags, users } from "@/lib/db/schema";
+import { publicPostWhere } from "@/lib/db/post-visibility";
 import { eq } from "drizzle-orm";
 import { SITE_CONFIG } from "@/lib/constants";
 
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const publishedPosts = await db
     .select({ slug: posts.slug, updatedAt: posts.updatedAt })
     .from(posts)
-    .where(eq(posts.published, true));
+    .where(publicPostWhere);
 
   const postRoutes: MetadataRoute.Sitemap = publishedPosts.map((post) => ({
     url: `${base}/posts/${post.slug}`,

@@ -2,17 +2,18 @@
 
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
-import { and, eq, or, ilike, desc } from "drizzle-orm";
+import { publicPostWhere } from "@/lib/db/post-visibility";
+import { and, or, ilike, desc } from "drizzle-orm";
 
 /** Autocomplete source for wiki-link [[...]] suggestions. */
 export async function searchPostsForAutocomplete(q: string) {
   const query = q.trim();
   const where = query
     ? and(
-        eq(posts.published, true),
+        publicPostWhere,
         or(ilike(posts.title, `%${query}%`), ilike(posts.slug, `%${query}%`)),
       )
-    : eq(posts.published, true);
+    : publicPostWhere;
 
   const rows = await db
     .select({ slug: posts.slug, title: posts.title })
