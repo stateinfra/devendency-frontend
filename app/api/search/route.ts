@@ -1,36 +1,18 @@
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { posts, postTags, tags, users } from "@/lib/db/schema";
 import { publicPostWhere } from "@/lib/db/post-visibility";
 import { and, eq, or, ilike, desc, sql, exists, inArray } from "drizzle-orm";
 import { POSTS_PER_PAGE } from "@/lib/constants";
 import { parseQueryTerms, escapeLike, makeSnippet } from "@/lib/search-snippet";
-import { InfiniteSearchList } from "@/components/post/infinite-search-list";
-import type { Metadata } from "next";
 
-type Props = {
-  searchParams: Promise<{ q?: string }>;
-};
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const query = (searchParams.get("q") || "").trim();
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const offset = (page - 1) * POSTS_PER_PAGE;
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q } = await searchParams;
-  return { title: q ? `"${q}" 검색 결과` : "검색" };
-}
-
-export default async function SearchPage({ searchParams }: Props) {
-  const sp = await searchParams;
-  const query = (sp.q || "").trim();
-
-  if (!query) {
-    return (
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">검색</h1>
-        <p className="text-slate-500 dark:text-slate-400 mb-2">검색어를 입력해주세요.</p>
-        <p className="text-xs text-slate-500 dark:text-slate-500">
-          여러 단어는 모두 포함된 글을 찾습니다. 큰따옴표(&quot;…&quot;)로 구절 검색.
-        </p>
-      </div>
-    );
-  }
+  if (!query) return NextResponse.json({ items: [], hasMore: false });
 
   const terms = parseQueryTerms(query);
   const likeTerms = terms.map((t) => `%${escapeLike(t)}%`);
@@ -77,12 +59,6 @@ export default async function SearchPage({ searchParams }: Props) {
     sql` + `,
   )})`;
 
-  const totalRows = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(posts)
-    .where(whereCondition);
-  const total = Number(totalRows[0]?.total ?? 0);
-
   const results = await db
     .select({
       id: posts.id,
@@ -98,7 +74,8 @@ export default async function SearchPage({ searchParams }: Props) {
     .from(posts)
     .where(whereCondition)
     .orderBy(desc(scoreExpr), desc(posts.publishedAt))
-    .limit(POSTS_PER_PAGE);
+    .limit(POSTS_PER_PAGE)
+    .offset(offset);
 
   const postIds = results.map((r) => r.id);
   const authorIds = [...new Set(results.map((r) => r.authorId))];
@@ -153,27 +130,5 @@ export default async function SearchPage({ searchParams }: Props) {
     };
   });
 
-  return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">검색 결과</h1>
-      <p className="text-slate-500 dark:text-slate-400 mb-8">
-        &quot;{query}&quot;에 대한 검색 결과 {total}건
-      </p>
-      {items.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
-          일치하는 글이 없습니다.
-          <div className="text-xs mt-2 text-slate-500">
-            제목·본문·태그·작성자 이름에서 검색합니다.
-          </div>
-        </div>
-      ) : (
-        <InfiniteSearchList
-          query={query}
-          initialItems={items}
-          initialHasMore={items.length === POSTS_PER_PAGE}
-          terms={terms}
-        />
-      )}
-    </div>
-  );
+  return NextResponse.json({ items, hasMore: items.length === POSTS_PER_PAGE, terms });
 }
