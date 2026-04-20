@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { posts, follows } from "@/lib/db/schema";
 import { publicPostWhere } from "@/lib/db/post-visibility";
-import { eq, desc, and, inArray, sql, count } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 import { PostList } from "@/components/post/post-list";
 import { FeedTabs } from "@/components/post/feed-tabs";
 import { POSTS_PER_PAGE } from "@/lib/constants";
@@ -10,32 +10,24 @@ import { auth } from "@/lib/auth";
 import Link from "next/link";
 
 type Props = {
-  searchParams: Promise<{ page?: string; tab?: string }>;
+  searchParams: Promise<{ tab?: string }>;
 };
 
 export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
-  const page = Math.max(1, Number(params.page) || 1);
   const tab = params.tab || "latest";
 
   const session = tab === "following" ? await auth() : null;
 
-  // ── popular 탭: db.select()로 정렬된 ID 목록 → 관계 쿼리 ──
   if (tab === "popular") {
     const likeCountExpr = sql<number>`(SELECT count(*) FROM "Like" WHERE "Like"."postId" = ${posts.id})`;
 
-    const [popularIds, [{ total }]] = await Promise.all([
-      db
-        .select({ postId: posts.id })
-        .from(posts)
-        .where(and(publicPostWhere, eq(posts.isAnnouncement, false)))
-        .orderBy(desc(likeCountExpr))
-        .limit(POSTS_PER_PAGE)
-        .offset((page - 1) * POSTS_PER_PAGE),
-      db.select({ total: count() }).from(posts).where(and(publicPostWhere, eq(posts.isAnnouncement, false))),
-    ]);
-
-    const totalPages = Math.ceil(total / POSTS_PER_PAGE);
+    const popularIds = await db
+      .select({ postId: posts.id })
+      .from(posts)
+      .where(and(publicPostWhere, eq(posts.isAnnouncement, false)))
+      .orderBy(desc(likeCountExpr))
+      .limit(POSTS_PER_PAGE);
 
     let postResults: PostWithRelations[] = [];
     if (popularIds.length > 0) {
@@ -49,7 +41,6 @@ export default async function HomePage({ searchParams }: Props) {
           likes: { columns: { userId: true } },
         },
       });
-      // 원래 인기순 정렬 복원
       const orderMap = new Map(ids.map((id, i) => [id, i]));
       postResults = fetched
         .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
@@ -63,16 +54,14 @@ export default async function HomePage({ searchParams }: Props) {
       <div>
         <FeedTabs />
         <PostList
-          posts={postResults}
-          currentPage={page}
-          totalPages={totalPages}
-          baseUrl="/?tab=popular"
+          initialPosts={postResults}
+          initialHasMore={postResults.length === POSTS_PER_PAGE}
+          fetchUrl="/api/feed?tab=popular"
         />
       </div>
     );
   }
 
-  // ── latest / following 탭 ──
   let whereCondition = and(publicPostWhere, eq(posts.isAnnouncement, false))!;
 
   if (tab === "following" && session?.user?.id) {
@@ -92,30 +81,25 @@ export default async function HomePage({ searchParams }: Props) {
     }
   }
 
-  const [postResults, [{ total }]] = await Promise.all([
-    db.query.posts.findMany({
-      where: whereCondition,
-      orderBy: desc(posts.publishedAt),
-      limit: POSTS_PER_PAGE,
-      offset: (page - 1) * POSTS_PER_PAGE,
-      with: {
-        author: { columns: { id: true, username: true, name: true, image: true, role: true } },
-        tags: { with: { tag: true } },
-        comments: { columns: { id: true } },
-        likes: { columns: { userId: true } },
-      },
-    }),
-    db.select({ total: count() }).from(posts).where(whereCondition),
-  ]);
+  const postResults = await db.query.posts.findMany({
+    where: whereCondition,
+    orderBy: desc(posts.publishedAt),
+    limit: POSTS_PER_PAGE,
+    with: {
+      author: { columns: { id: true, username: true, name: true, image: true, role: true } },
+      tags: { with: { tag: true } },
+      comments: { columns: { id: true } },
+      likes: { columns: { userId: true } },
+    },
+  });
 
   const postsWithCounts = postResults.map((p) => ({
     ...p,
     _count: { comments: p.comments.length, likes: p.likes.length },
   }));
 
-  const totalPages = Math.ceil(total / POSTS_PER_PAGE);
   const isFollowingNoAuth = tab === "following" && !session?.user;
-  const baseUrl = tab !== "latest" ? `/?tab=${tab}` : "/";
+  const fetchUrl = `/api/feed?tab=${tab}`;
 
   return (
     <div>
@@ -137,10 +121,9 @@ export default async function HomePage({ searchParams }: Props) {
         </div>
       ) : (
         <PostList
-          posts={postsWithCounts as unknown as PostWithRelations[]}
-          currentPage={page}
-          totalPages={totalPages}
-          baseUrl={baseUrl}
+          initialPosts={postsWithCounts as unknown as PostWithRelations[]}
+          initialHasMore={postsWithCounts.length === POSTS_PER_PAGE}
+          fetchUrl={fetchUrl}
         />
       )}
     </div>

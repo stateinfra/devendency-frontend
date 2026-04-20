@@ -1,24 +1,35 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PostCard } from "@/components/post/post-card";
-import { EmptyState, Spinner } from "@/components/ds";
-import type { PostWithRelations } from "@/types";
+import { SearchResult } from "@/components/post/search-result-item";
+import { Spinner } from "@/components/ds";
 
-type PostListProps = {
-  initialPosts: PostWithRelations[];
-  initialHasMore: boolean;
-  fetchUrl: string;
-  singleColumn?: boolean;
+type SearchItem = {
+  slug: string;
+  title: string;
+  snippet: string;
+  author: { username: string | null; name: string | null; image: string | null };
+  publishedAt: Date | string | null;
+  createdAt: Date | string;
+  likeCount: number;
+  commentCount: number;
+  tags: string[];
 };
 
-export function PostList({
-  initialPosts,
+type Props = {
+  query: string;
+  initialItems: SearchItem[];
+  initialHasMore: boolean;
+  terms: string[];
+};
+
+export function InfiniteSearchList({
+  query,
+  initialItems,
   initialHasMore,
-  fetchUrl,
-  singleColumn = false,
-}: PostListProps) {
-  const [posts, setPosts] = useState<PostWithRelations[]>(initialPosts);
+  terms,
+}: Props) {
+  const [items, setItems] = useState<SearchItem[]>(initialItems);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
@@ -26,11 +37,11 @@ export function PostList({
   const lockRef = useRef(false);
 
   useEffect(() => {
-    setPosts(initialPosts);
+    setItems(initialItems);
     setPage(1);
     setHasMore(initialHasMore);
     lockRef.current = false;
-  }, [fetchUrl, initialPosts, initialHasMore]);
+  }, [query, initialItems, initialHasMore]);
 
   const loadMore = useCallback(async () => {
     if (lockRef.current || !hasMore) return;
@@ -38,16 +49,17 @@ export function PostList({
     setLoading(true);
     try {
       const nextPage = page + 1;
-      const sep = fetchUrl.includes("?") ? "&" : "?";
-      const res = await fetch(`${fetchUrl}${sep}page=${nextPage}`);
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(query)}&page=${nextPage}`,
+      );
       if (!res.ok) throw new Error("fetch failed");
       const data = (await res.json()) as {
-        posts: PostWithRelations[];
+        items: SearchItem[];
         hasMore: boolean;
       };
-      setPosts((prev) => {
-        const seen = new Set(prev.map((p) => p.id));
-        const fresh = data.posts.filter((p) => !seen.has(p.id));
+      setItems((prev) => {
+        const seen = new Set(prev.map((p) => p.slug));
+        const fresh = data.items.filter((p) => !seen.has(p.slug));
         return [...prev, ...fresh];
       });
       setPage(nextPage);
@@ -58,7 +70,7 @@ export function PostList({
       lockRef.current = false;
       setLoading(false);
     }
-  }, [fetchUrl, page, hasMore]);
+  }, [query, page, hasMore]);
 
   useEffect(() => {
     if (!hasMore) return;
@@ -75,23 +87,19 @@ export function PostList({
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  if (posts.length === 0) {
-    return (
-      <EmptyState icon="article" message="아직 작성된 글이 없습니다." className="py-16" />
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div
-        className={
-          singleColumn
-            ? "grid grid-cols-1 gap-6"
-            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
-        }
-      >
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} />
+    <>
+      <div className="space-y-2">
+        {items.map((p) => (
+          <SearchResult
+            key={p.slug}
+            post={{
+              ...p,
+              publishedAt: p.publishedAt ? new Date(p.publishedAt) : null,
+              createdAt: new Date(p.createdAt),
+            }}
+            terms={terms}
+          />
         ))}
       </div>
       {hasMore && (
@@ -103,6 +111,6 @@ export function PostList({
           {loading && <Spinner />}
         </div>
       )}
-    </div>
+    </>
   );
 }
