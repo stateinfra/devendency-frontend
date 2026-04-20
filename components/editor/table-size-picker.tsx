@@ -89,10 +89,8 @@ export function TableSizePicker({ position, onSelect, onClose }: Props) {
 }
 
 export function buildTableMarkdown(rows: number, cols: number): string {
-  const header = `| ${Array.from({ length: cols }, (_, i) => `헤더${i + 1}`).join(" | ")} |`;
+  const emptyRow = `| ${Array.from({ length: cols }, () => " ").join(" | ")} |`;
   const sep = `| ${Array.from({ length: cols }, () => "---").join(" | ")} |`;
-  const body = Array.from({ length: rows }, () =>
-    `| ${Array.from({ length: cols }, () => " ").join(" | ")} |`,
-  ).join("\n");
-  return `${header}\n${sep}\n${body}`;
+  const body = Array.from({ length: rows }, () => emptyRow).join("\n");
+  return `${emptyRow}\n${sep}\n${body}`;
 }

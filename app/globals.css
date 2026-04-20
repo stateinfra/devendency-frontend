@@ -137,6 +137,274 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #aaa;
 }
+
+/* Hidden scrollbar (scroll still works) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── CodeMirror markdown table WYSIWYG widget ── */
+
+/* Hide the caret entirely when it sits at a table-widget boundary */
+.cm-editor.cm-hide-cursor-at-table .cm-cursorLayer .cm-cursor,
+.cm-editor.cm-hide-cursor-at-table .cm-cursorLayer .cm-cursor-primary {
+  display: none !important;
+}
+
+.cm-editor .cm-md-table-edge {
+  display: block;
+  height: 14px;
+  margin: 0;
+  cursor: text;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cm-editor .cm-md-table-wrapper {
+  position: relative;
+  display: block;
+  margin: 0.9em 0 0.9em 24px;
+  padding: 24px 24px 24px 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+/* End-edge add buttons (+ row at bottom, + col at right) */
+.cm-md-table-add-end {
+  position: absolute;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  color: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+.dark .cm-md-table-add-end {
+  color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.cm-md-table-wrapper:hover .cm-md-table-add-end {
+  opacity: 1;
+}
+.cm-md-table-add-end:hover:not(:disabled) {
+  color: #7f6df2;
+  border-color: rgba(127, 109, 242, 0.5);
+  background: rgba(127, 109, 242, 0.08);
+}
+.cm-md-table-add-end:disabled {
+  display: none;
+}
+.cm-md-table-add-row-end {
+  left: 0;
+  right: 24px;
+  bottom: 0;
+  height: 24px;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+}
+.cm-md-table-add-col-end {
+  top: 24px;
+  bottom: 24px;
+  right: 0;
+  width: 24px;
+  writing-mode: vertical-rl;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Context menu (right-click) */
+.cm-md-table-menu {
+  position: fixed;
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  z-index: 10000;
+}
+.dark .cm-md-table-menu {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.cm-md-table-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #525252;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dark .cm-md-table-menu-item {
+  color: #bfc3cc;
+}
+.cm-md-table-menu-item:hover:not(:disabled) {
+  background: rgba(127, 109, 242, 0.1);
+  color: #7f6df2;
+}
+.dark .cm-md-table-menu-item:hover:not(:disabled) {
+  background: rgba(127, 109, 242, 0.18);
+  color: #b3a6ff;
+}
+.cm-md-table-menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.cm-md-table-menu-sep {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 4px 0;
+}
+.dark .cm-md-table-menu-sep {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Drag handles (row/col reorder) */
+.cm-editor .cm-md-table-drag-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.3);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: grab;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s, background 0.15s, border-color 0.15s;
+  user-select: none;
+  pointer-events: auto;
+}
+.dark .cm-editor .cm-md-table-drag-handle {
+  color: rgba(255, 255, 255, 0.3);
+}
+.cm-editor .cm-md-table-drag-handle.active {
+  opacity: 1;
+}
+.cm-editor .cm-md-table-drag-handle:hover {
+  color: #7f6df2;
+  background: rgba(127, 109, 242, 0.1);
+  border-color: rgba(127, 109, 242, 0.3);
+}
+.cm-editor .cm-md-table-drag-handle:active,
+.cm-editor .cm-md-table-drag-handle.dragging {
+  cursor: grabbing;
+  opacity: 1;
+  color: #7f6df2;
+}
+.cm-editor .cm-md-table-row-handle { left: -24px; }
+.cm-editor .cm-md-table-col-handle { top: 0; }
+
+/* Drop indicators */
+.cm-md-table tr.cm-md-drop-before > th:first-child,
+.cm-md-table tr.cm-md-drop-before > td:first-child,
+.cm-md-table tr.cm-md-drop-before > th,
+.cm-md-table tr.cm-md-drop-before > td {
+  box-shadow: inset 0 2px 0 0 #7f6df2;
+}
+.cm-md-table tr.cm-md-drop-after > th,
+.cm-md-table tr.cm-md-drop-after > td {
+  box-shadow: inset 0 -2px 0 0 #7f6df2;
+}
+.cm-md-table th.cm-md-drop-before,
+.cm-md-table td.cm-md-drop-before {
+  box-shadow: inset 2px 0 0 0 #7f6df2;
+}
+.cm-md-table th.cm-md-drop-after,
+.cm-md-table td.cm-md-drop-after {
+  box-shadow: inset -2px 0 0 0 #7f6df2;
+}
+
+/* Selected via CM selection (drag text selection overlap) */
+.cm-md-table-wrapper.cm-md-table-selected .cm-md-table {
+  outline: 2px solid rgba(127, 109, 242, 0.35);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.cm-editor .cm-md-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  table-layout: auto;
+  font-size: 0.95em;
+  line-height: 1.5;
+  background: transparent;
+}
+.cm-editor .cm-md-table th,
+.cm-editor .cm-md-table td {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 7px 12px;
+  min-width: 60px;
+  outline: none;
+  vertical-align: top;
+  word-break: break-word;
+  background: transparent;
+  color: var(--foreground);
+}
+.dark .cm-editor .cm-md-table th,
+.dark .cm-editor .cm-md-table td {
+  border-top-color: rgba(255, 255, 255, 0.12);
+  border-right-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  border-left-color: rgba(255, 255, 255, 0.12);
+}
+.cm-editor .cm-md-table th {
+  background: rgba(0, 0, 0, 0.035);
+  font-weight: 600;
+  text-align: left;
+}
+.dark .cm-editor .cm-md-table th {
+  background: rgba(255, 255, 255, 0.05);
+}
+.cm-editor .cm-md-table th:focus,
+.cm-editor .cm-md-table td:focus {
+  background: rgba(127, 109, 242, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(127, 109, 242, 0.5);
+}
+.dark .cm-editor .cm-md-table th:focus,
+.dark .cm-editor .cm-md-table td:focus {
+  background: rgba(127, 109, 242, 0.18);
+}
+.cm-editor .cm-md-table th[data-cell-selected],
+.cm-editor .cm-md-table td[data-cell-selected] {
+  background: rgba(127, 109, 242, 0.16) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(127, 109, 242, 0.5);
+}
+.dark .cm-editor .cm-md-table th[data-cell-selected],
+.dark .cm-editor .cm-md-table td[data-cell-selected] {
+  background: rgba(127, 109, 242, 0.24) !important;
+}
+.cm-editor .cm-md-table td:empty::before,
+.cm-editor .cm-md-table th:empty::before {
+  content: "";
+  display: inline-block;
+  min-height: 1em;
+}
 /* Custom scrollbar — dark */
 .dark .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
