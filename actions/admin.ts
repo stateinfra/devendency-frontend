@@ -205,29 +205,6 @@ export async function changeUserRole(
   return { success: true };
 }
 
-export async function toggleAnnouncement(postId: string) {
-  await requireAdmin();
-
-  const post = await db.query.posts.findFirst({
-    where: eq(posts.id, postId),
-    columns: { isAnnouncement: true },
-  });
-  if (!post) return { error: "글을 찾을 수 없습니다" };
-
-  if (post.isAnnouncement) {
-    // 공지 해제
-    await db.update(posts).set({ isAnnouncement: false }).where(eq(posts.id, postId));
-  } else {
-    // 기존 공지 해제 후 새 공지 등록
-    await db.update(posts).set({ isAnnouncement: false }).where(eq(posts.isAnnouncement, true));
-    await db.update(posts).set({ isAnnouncement: true }).where(eq(posts.id, postId));
-  }
-
-  revalidatePath("/");
-  revalidatePath("/dashboard/admin");
-  return { success: true, isAnnouncement: !post.isAnnouncement };
-}
-
 export async function adminDeletePost(postId: string) {
   await requireAdmin();
 

@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const popularIds = await db
       .select({ postId: posts.id })
       .from(posts)
-      .where(and(publicPostWhere, eq(posts.isAnnouncement, false)))
+      .where(publicPostWhere)
       .orderBy(desc(likeCountExpr))
       .limit(POSTS_PER_PAGE)
       .offset(offset);
@@ -87,7 +87,6 @@ export async function GET(request: NextRequest) {
 
     const whereCondition = and(
       publicPostWhere,
-      eq(posts.isAnnouncement, false),
       inArray(posts.authorId, followingIds),
     );
     const result = await db.query.posts.findMany({
@@ -102,7 +101,7 @@ export async function GET(request: NextRequest) {
   }
 
   // latest (default)
-  const whereCondition = and(publicPostWhere, eq(posts.isAnnouncement, false));
+  const whereCondition = publicPostWhere;
   const result = await db.query.posts.findMany({
     where: whereCondition,
     orderBy: desc(posts.publishedAt),

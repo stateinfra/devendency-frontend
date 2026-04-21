@@ -9,7 +9,6 @@ import { Backlinks } from "@/components/post/backlinks";
 import { PostActions } from "@/components/post/post-actions";
 import { LikeProvider } from "@/components/post/like-context";
 import { DeletePostButton } from "@/components/post/delete-post-button";
-import { AnnouncementToggle } from "@/components/post/announcement-toggle";
 import { ReportButton } from "@/components/shared/report-button";
 import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
@@ -165,7 +164,6 @@ export default async function PostPage({ params }: Props) {
 
   const liked = !!likedRow;
   const isAuthor = session?.user?.id === post.authorId;
-  const isAdmin = session?.user?.role === "ADMIN";
 
   const isDraft = !post.published;
 
@@ -291,9 +289,6 @@ export default async function PostPage({ params }: Props) {
                 </div>
               </Link>
               <div className="flex items-center gap-1 [&>*]:shrink-0 relative z-[60]">
-                {isAdmin && (
-                  <AnnouncementToggle postId={post.id} initialIsAnnouncement={post.isAnnouncement} />
-                )}
                 {isAuthor && (
                   <>
                     <Link

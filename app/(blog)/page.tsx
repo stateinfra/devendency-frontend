@@ -25,7 +25,7 @@ export default async function HomePage({ searchParams }: Props) {
     const popularIds = await db
       .select({ postId: posts.id })
       .from(posts)
-      .where(and(publicPostWhere, eq(posts.isAnnouncement, false)))
+      .where(publicPostWhere)
       .orderBy(desc(likeCountExpr))
       .limit(POSTS_PER_PAGE);
 
@@ -62,7 +62,7 @@ export default async function HomePage({ searchParams }: Props) {
     );
   }
 
-  let whereCondition = and(publicPostWhere, eq(posts.isAnnouncement, false))!;
+  let whereCondition = publicPostWhere;
 
   if (tab === "following" && session?.user?.id) {
     const following = await db.query.follows.findMany({
@@ -73,7 +73,6 @@ export default async function HomePage({ searchParams }: Props) {
     if (followingIds.length > 0) {
       whereCondition = and(
         publicPostWhere,
-        eq(posts.isAnnouncement, false),
         inArray(posts.authorId, followingIds),
       )!;
     } else {
