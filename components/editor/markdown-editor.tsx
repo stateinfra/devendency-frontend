@@ -13,7 +13,6 @@ import { tags } from "@lezer/highlight";
 import { createPost, updatePost } from "@/actions/post";
 import { toast } from "sonner";
 import { ImageCropModal } from "./cover-image-crop-modal";
-import { YouTubePasteMenu } from "./youtube-paste-menu";
 import { MarkdownGuideModal } from "./markdown-guide-modal";
 import { WikiLinkMenu, type WikiSuggestion } from "./wiki-link-menu";
 import { TableSizePicker, buildTableMarkdown } from "./table-size-picker";
@@ -29,13 +28,6 @@ function extractYouTubeVideoId(url: string): string | null {
   }
   return null;
 }
-
-type YouTubePasteState = {
-  url: string;
-  videoId: string;
-  position: { x: number; y: number };
-  cursorPos: number;
-};
 
 // ── Image upload helper ──
 async function uploadImageFile(file: File): Promise<string> {
@@ -1309,24 +1301,26 @@ const tableSelectionOverlay = ViewPlugin.fromClass(
   },
 );
 
-// YouTube paste callback ref — set by MarkdownEditor component
-let onYouTubePasteCallback: ((url: string, videoId: string, coords: { x: number; y: number }, cursorPos: number) => void) | null = null;
-
 const imageUploadExtension = EditorView.domEventHandlers({
   paste(event, view) {
-    // Check for YouTube URL in plain text paste
+    // YouTube URL paste → insert as a standalone paragraph so both the editor
+    // preview widget and the rendered post auto-embed it.
     const text = event.clipboardData?.getData("text/plain")?.trim();
-    if (text && onYouTubePasteCallback) {
-      const videoId = extractYouTubeVideoId(text);
-      if (videoId) {
-        event.preventDefault();
-        const cursorPos = view.state.selection.main.head;
-        const coords = view.coordsAtPos(cursorPos);
-        const x = coords ? coords.left : 100;
-        const y = coords ? coords.bottom + 8 : 100;
-        onYouTubePasteCallback(text, videoId, { x, y }, cursorPos);
-        return true;
-      }
+    if (text && /^https?:\/\/\S+$/.test(text) && extractYouTubeVideoId(text)) {
+      event.preventDefault();
+      const pos = view.state.selection.main.head;
+      const line = view.state.doc.lineAt(pos);
+      const before = view.state.doc.sliceString(line.from, pos);
+      const after = view.state.doc.sliceString(pos, line.to);
+      const prePad = before.trim() === "" ? "" : "\n\n";
+      const postPad = after.trim() === "" ? "\n\n" : "\n\n";
+      const insert = `${prePad}${text}${postPad}`;
+      const caret = pos + insert.length;
+      view.dispatch({
+        changes: { from: pos, insert },
+        selection: { anchor: caret },
+      });
+      return true;
     }
 
     const files = event.clipboardData?.files;
@@ -1557,6 +1551,297 @@ const imagePreviewField = StateField.define<DecorationSet>({
   provide: (f) => EditorView.decorations.from(f),
 });
 
+type YTMeta = {
+  title: string | null;
+  authorName: string | null;
+  thumbnailUrl: string | null;
+};
+const ytMetaCache = new Map<string, YTMeta | "loading" | "error">();
+const ytMetaWaiters = new Map<string, Array<(m: YTMeta | null) => void>>();
+
+async function getYTMeta(videoId: string, url: string): Promise<YTMeta | null> {
+  const cached = ytMetaCache.get(videoId);
+  if (cached && typeof cached === "object") return cached;
+  if (cached === "error") return null;
+  if (cached === "loading") {
+    return new Promise((resolve) => {
+      const arr = ytMetaWaiters.get(videoId) ?? [];
+      arr.push(resolve);
+      ytMetaWaiters.set(videoId, arr);
+    });
+  }
+  ytMetaCache.set(videoId, "loading");
+  try {
+    const res = await fetch(`/api/oembed?url=${encodeURIComponent(url)}`);
+    if (!res.ok) throw new Error("oembed failed");
+    const data = await res.json();
+    const meta: YTMeta = {
+      title: data.title ?? null,
+      authorName: data.authorName ?? null,
+      thumbnailUrl: data.thumbnailUrl ?? null,
+    };
+    ytMetaCache.set(videoId, meta);
+    (ytMetaWaiters.get(videoId) ?? []).forEach((fn) => fn(meta));
+    ytMetaWaiters.delete(videoId);
+    return meta;
+  } catch {
+    ytMetaCache.set(videoId, "error");
+    (ytMetaWaiters.get(videoId) ?? []).forEach((fn) => fn(null));
+    ytMetaWaiters.delete(videoId);
+    return null;
+  }
+}
+
+class YouTubeWidget extends WidgetType {
+  constructor(
+    readonly videoId: string,
+    readonly url: string,
+    readonly from: number,
+    readonly to: number,
+  ) {
+    super();
+  }
+  ignoreEvent() {
+    return false;
+  }
+  toDOM() {
+    const wrap = document.createElement("div");
+    wrap.style.padding = "6px 0";
+    wrap.style.maxWidth = "100%";
+
+    const card = document.createElement("div");
+    card.style.position = "relative";
+    card.style.display = "flex";
+    card.style.alignItems = "stretch";
+    card.style.gap = "0";
+    card.style.border = "1px solid rgba(0,0,0,0.08)";
+    card.style.borderRadius = "10px";
+    card.style.overflow = "hidden";
+    card.style.background = "var(--card)";
+    card.style.minHeight = "96px";
+    card.style.cursor = "pointer";
+    card.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+
+    const thumb = document.createElement("div");
+    thumb.style.flex = "0 0 160px";
+    thumb.style.aspectRatio = "16 / 9";
+    thumb.style.position = "relative";
+    thumb.style.background = `rgba(0,0,0,0.05) url("https://i.ytimg.com/vi/${this.videoId}/hqdefault.jpg") center/cover no-repeat`;
+
+    const playBadge = document.createElement("div");
+    playBadge.style.position = "absolute";
+    playBadge.style.inset = "0";
+    playBadge.style.display = "flex";
+    playBadge.style.alignItems = "center";
+    playBadge.style.justifyContent = "center";
+    playBadge.style.background = "linear-gradient(to right, rgba(0,0,0,0.05), rgba(0,0,0,0.25))";
+    playBadge.innerHTML =
+      '<div style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="18" height="18" fill="white" style="margin-left:2px;"><path d="M8 5v14l11-7z"/></svg></div>';
+    thumb.appendChild(playBadge);
+
+    const body = document.createElement("div");
+    body.style.flex = "1 1 auto";
+    body.style.minWidth = "0";
+    body.style.padding = "12px 14px";
+    body.style.display = "flex";
+    body.style.flexDirection = "column";
+    body.style.justifyContent = "center";
+    body.style.gap = "6px";
+
+    const title = document.createElement("div");
+    title.style.fontWeight = "600";
+    title.style.fontSize = "14px";
+    title.style.lineHeight = "1.4";
+    title.style.color = "var(--foreground)";
+    title.style.display = "-webkit-box";
+    title.style.webkitLineClamp = "2";
+    (title.style as any).WebkitBoxOrient = "vertical";
+    title.style.overflow = "hidden";
+    title.style.textOverflow = "ellipsis";
+    title.textContent = this.url;
+
+    const metaRow = document.createElement("div");
+    metaRow.style.fontSize = "12px";
+    metaRow.style.color = "var(--muted)";
+    metaRow.style.display = "flex";
+    metaRow.style.alignItems = "center";
+    metaRow.style.gap = "6px";
+    metaRow.innerHTML =
+      '<span style="color:#ff0033;font-weight:700;letter-spacing:-0.02em;">YouTube</span>';
+
+    body.appendChild(title);
+    body.appendChild(metaRow);
+    card.appendChild(thumb);
+    card.appendChild(body);
+
+    // Action buttons (top-right) — data-attrs consumed by youtubeActionHandler.
+    const actions = document.createElement("div");
+    actions.style.position = "absolute";
+    actions.style.top = "6px";
+    actions.style.right = "6px";
+    actions.style.display = "flex";
+    actions.style.gap = "4px";
+    actions.style.zIndex = "2";
+
+    const linkIcon =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+    const xIcon =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+    const makeAction = (action: "plain" | "delete", innerHTML: string, label: string) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = label;
+      btn.setAttribute("aria-label", label);
+      btn.dataset.cmYtAction = action;
+      btn.dataset.cmYtFrom = String(this.from);
+      btn.dataset.cmYtTo = String(this.to);
+      btn.dataset.cmYtUrl = this.url;
+      btn.dataset.cmYtVideoId = this.videoId;
+      btn.style.width = "28px";
+      btn.style.height = "28px";
+      btn.style.display = "flex";
+      btn.style.alignItems = "center";
+      btn.style.justifyContent = "center";
+      btn.style.borderRadius = "999px";
+      btn.style.border = "1px solid rgba(0,0,0,0.08)";
+      btn.style.background = "rgba(255,255,255,0.92)";
+      btn.style.backdropFilter = "blur(6px)";
+      (btn.style as any).WebkitBackdropFilter = "blur(6px)";
+      btn.style.color = "#475569";
+      btn.style.cursor = "pointer";
+      btn.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+      btn.style.transition = "background 0.12s, color 0.12s, transform 0.12s";
+      btn.addEventListener("mouseover", () => {
+        btn.style.background = "#ffffff";
+        btn.style.color = action === "delete" ? "#ef4444" : "#111827";
+      });
+      btn.addEventListener("mouseout", () => {
+        btn.style.background = "rgba(255,255,255,0.92)";
+        btn.style.color = "#475569";
+      });
+      btn.innerHTML = innerHTML;
+      return btn;
+    };
+
+    actions.appendChild(makeAction("plain", linkIcon, "일반 링크로 변환"));
+    actions.appendChild(makeAction("delete", xIcon, "삭제"));
+    card.appendChild(actions);
+
+    wrap.appendChild(card);
+
+    // Async fetch + fill; guard against stale updates by checking DOM parentage.
+    getYTMeta(this.videoId, this.url).then((meta) => {
+      if (!wrap.isConnected) return;
+      if (meta?.title) title.textContent = meta.title;
+      if (meta?.authorName) {
+        const author = document.createElement("span");
+        author.textContent = `· ${meta.authorName}`;
+        metaRow.appendChild(author);
+      }
+      if (meta?.thumbnailUrl) {
+        thumb.style.backgroundImage = `url("${meta.thumbnailUrl}")`;
+      }
+    });
+
+    return wrap;
+  }
+  eq(other: YouTubeWidget) {
+    return (
+      this.videoId === other.videoId &&
+      this.url === other.url &&
+      this.from === other.from &&
+      this.to === other.to
+    );
+  }
+}
+
+const youtubeActionHandler = EditorView.domEventHandlers({
+  mousedown(event, view) {
+    const t = event.target as HTMLElement | null;
+    if (!t) return false;
+    const btn = t.closest("[data-cm-yt-action]") as HTMLElement | null;
+    if (!btn) return false;
+    const action = btn.dataset.cmYtAction;
+    const from = Number(btn.dataset.cmYtFrom);
+    const to = Number(btn.dataset.cmYtTo);
+    const url = btn.dataset.cmYtUrl ?? "";
+    const videoId = btn.dataset.cmYtVideoId ?? "";
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return false;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (action === "delete") {
+      // Remove the URL line and one trailing newline (if any) so no blank gap remains.
+      const doc = view.state.doc;
+      const end = Math.min(to + 1, doc.length);
+      view.dispatch({ changes: { from, to: end, insert: "" } });
+      return true;
+    }
+    if (action === "plain") {
+      // Replace standalone URL with a plain markdown link [title](url).
+      // Use the cached oEmbed title if we have it; fall back to the URL.
+      const cached = ytMetaCache.get(videoId);
+      const title =
+        cached && typeof cached === "object" && cached.title ? cached.title : url;
+      view.dispatch({ changes: { from, to, insert: `[${title}](${url})` } });
+      return true;
+    }
+    return false;
+  },
+});
+
+function buildYouTubeDecorations(state: import("@codemirror/state").EditorState): DecorationSet {
+  try {
+    const decs: Array<ReturnType<ReturnType<typeof Decoration.widget>["range"]>> = [];
+    const cursorLine = state.doc.lineAt(state.selection.main.head).number;
+    const doc = state.doc;
+    for (let i = 1; i <= doc.lines; i++) {
+      const line = doc.line(i);
+      const text = line.text.trim();
+      if (!text || !/^https?:\/\/\S+$/.test(text)) continue;
+      const videoId = extractYouTubeVideoId(text);
+      if (!videoId) continue;
+
+      if (i === cursorLine) {
+        // Cursor on URL line: keep URL editable, render preview card below.
+        decs.push(
+          Decoration.widget({
+            widget: new YouTubeWidget(videoId, text, line.from, line.to),
+            block: true,
+            side: 1,
+          }).range(line.to),
+        );
+      } else {
+        // Cursor elsewhere: replace the URL line with the preview card.
+        decs.push(
+          Decoration.replace({
+            widget: new YouTubeWidget(videoId, text, line.from, line.to),
+            block: true,
+          }).range(line.from, line.to),
+        );
+      }
+    }
+    return Decoration.set(decs, true);
+  } catch {
+    return Decoration.none;
+  }
+}
+
+const youtubePreviewField = StateField.define<DecorationSet>({
+  create(state) {
+    return buildYouTubeDecorations(state);
+  },
+  update(value, tr) {
+    if (tr.docChanged || tr.selection) {
+      return buildYouTubeDecorations(tr.state);
+    }
+    return value;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
 const markdownHighlighting = HighlightStyle.define([
   { tag: tags.heading1, fontSize: "1.8em", fontWeight: "700", color: "var(--heading)" },
   { tag: tags.heading2, fontSize: "1.4em", fontWeight: "700", color: "var(--heading)" },
@@ -1620,6 +1905,8 @@ const editorExtensions = [
   syntaxHighlighting(markdownHighlighting),
   codeBlockPlugin,
   imagePreviewField,
+  youtubePreviewField,
+  youtubeActionHandler,
   tableField,
   tableAtomicRanges,
   tableSelectionOverlay,
@@ -1678,18 +1965,6 @@ export function MarkdownEditor({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const tableButtonRef = useRef<HTMLButtonElement>(null);
-  const [ytPaste, setYtPaste] = useState<YouTubePasteState | null>(null);
-
-  // Register YouTube paste callback
-  useEffect(() => {
-    onYouTubePasteCallback = (url, videoId, position, cursorPos) => {
-      setYtPaste({ url, videoId, position, cursorPos });
-    };
-    return () => {
-      onYouTubePasteCallback = null;
-    };
-  }, []);
-
   // ── Cover image crop & upload ──
   function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1895,25 +2170,6 @@ export function MarkdownEditor({
       view.focus();
     },
     [tablePicker],
-  );
-
-  const handleYouTubeSelect = useCallback(
-    (type: "text" | "link" | "video") => {
-      if (!ytPaste || !editorRef.current?.view) return;
-      const view = editorRef.current.view;
-      const { url, videoId, cursorPos } = ytPaste;
-      let insert = "";
-      if (type === "text") {
-        insert = url;
-      } else if (type === "link") {
-        insert = `[${url}](${url})`;
-      } else {
-        insert = `\n<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>\n`;
-      }
-      view.dispatch({ changes: { from: cursorPos, insert } });
-      setYtPaste(null);
-    },
-    [ytPaste],
   );
 
   // ── Auto-save (debounce 3s after last edit) ──
@@ -2450,16 +2706,6 @@ export function MarkdownEditor({
           position={{ x: tablePicker.x, y: tablePicker.y }}
           onSelect={handleTableInsert}
           onClose={() => setTablePicker(null)}
-        />
-      )}
-
-      {ytPaste && (
-        <YouTubePasteMenu
-          url={ytPaste.url}
-          videoId={ytPaste.videoId}
-          position={ytPaste.position}
-          onSelect={handleYouTubeSelect}
-          onClose={() => setYtPaste(null)}
         />
       )}
 

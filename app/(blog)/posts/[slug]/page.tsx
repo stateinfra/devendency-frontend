@@ -15,6 +15,7 @@ import { TableOfContents } from "@/components/post/table-of-contents";
 import { SeriesNav } from "@/components/post/series-nav";
 import { ScrollToTop } from "@/components/post/scroll-to-top";
 import { ScrollProgress } from "@/components/post/scroll-progress";
+import { ReaderSettingsBootstrap } from "@/components/post/reader-settings";
 import { SkeletonImage } from "@/components/shared/skeleton-image";
 import { CommentList } from "@/components/comment/comment-list";
 import { formatDate } from "@/lib/utils";
@@ -197,19 +198,24 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <LikeProvider postId={post.id} initialLiked={liked} initialLikeCount={likeCount}>
+      <ReaderSettingsBootstrap />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 relative max-w-[1200px] mx-auto">
-        <aside className="hidden lg:block lg:col-span-3 relative z-40">
+        <aside data-reader-hide className="hidden lg:block lg:col-span-3 relative z-40">
           <div className="sticky top-24 space-y-8">
             {!isDraft && <PostActions variant="sidebar" markdownContent={post.content} />}
             <TableOfContents content={post.content} />
           </div>
         </aside>
 
-        <article className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full relative">
+        <article
+          data-reader-center
+          className="col-span-1 lg:col-span-9 mx-auto w-full relative"
+          style={{ maxWidth: "var(--reader-content-width, 760px)" }}
+        >
           {isDraft && (
             <div className="mb-6 px-4 py-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-800/40 text-yellow-700 dark:text-yellow-300 text-sm flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px]">edit_note</span>
@@ -241,7 +247,7 @@ export default async function PostPage({ params }: Props) {
           )}
 
           <header className="mb-10">
-            <div className="flex items-center gap-2 text-sm mb-6 font-medium flex-wrap">
+            <div data-reader-hide className="flex items-center gap-2 text-sm mb-6 font-medium flex-wrap">
               {post.tags.map(({ tag }) => (
                 <Link
                   key={tag.id}

@@ -7,11 +7,13 @@ import { useSession } from "next-auth/react";
 import { UserMenu } from "@/components/auth/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/components/theme-provider";
+import { ReaderSettings } from "@/components/post/reader-settings";
 import { useState, useEffect, useRef } from "react";
 
 function CompactActions({ session, openSearch }: { session: any; openSearch: () => void }) {
   return (
     <div className="flex items-center gap-1.5">
+      <ReaderSettings />
       <button
         aria-label="검색"
         onClick={openSearch}
@@ -259,7 +261,10 @@ export function Header() {
                   <span className="text-sm whitespace-nowrap">홈으로 돌아가기</span>
                 </button>
               </div>
-              <div className="col-span-1 lg:col-span-9 max-w-[760px] mx-auto w-full flex items-center justify-between">
+              <div
+                className="col-span-1 lg:col-span-9 mx-auto w-full flex items-center justify-between"
+                style={{ maxWidth: "var(--reader-content-width, 760px)" }}
+              >
                 <button
                   onClick={goHome}
                   className="flex lg:hidden items-center gap-1.5 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors"

@@ -74,6 +74,12 @@
   --code-variable: #e36209;
   --code-inserted: #22863a;
   --code-deleted: #b31d28;
+
+  /* Reader settings defaults (overridden at runtime by ReaderSettings) */
+  --reader-font-size: 1rem;
+  --reader-font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --reader-line-height: 1.75;
+  --reader-content-width: 760px;
 }
 :root.dark, .dark {
   --background: #202020;
@@ -106,6 +112,9 @@
 @layer base {
   * {
     border-color: var(--border);
+  }
+  html {
+    scrollbar-gutter: stable;
   }
   body {
     background-color: var(--background) !important;
@@ -447,14 +456,25 @@
 /* --- Shared (layout, spacing) --- */
 .obsidian-md {
   max-width: none;
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: var(--reader-font-size);
+  font-family: var(--reader-font-family);
+  line-height: var(--reader-line-height);
   letter-spacing: -0.01em;
   color: #1a1a1a;
 }
 .dark .obsidian-md {
   color: #dcddde;
 }
+
+/* Zen mode — hide the ToC/sidebar and let the article occupy the full grid
+   so the reader is centered in the viewport. */
+body.reader-focus [data-reader-hide] {
+  display: none;
+}
+body.reader-focus [data-reader-center] {
+  grid-column: 1 / -1;
+}
+
 
 /* --- Headings --- */
 .obsidian-md h1 {

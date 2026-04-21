@@ -36,7 +36,7 @@ export function UserMenu() {
     },
     {
       href: "/dashboard/series",
-      icon: "auto_stories",
+      icon: "book_2",
       label: "시리즈 관리",
     },
     {
