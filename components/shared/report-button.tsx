@@ -35,10 +35,15 @@ export function ReportButton({ type, targetId }: ReportButtonProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-gray-400 dark:text-[#dcddde]/30 hover:text-red-400 transition-colors"
+        className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-transparent text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-all leading-none box-border"
         title="신고"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>flag</span>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 18, width: 18, height: 18, lineHeight: "18px" }}
+        >
+          flag
+        </span>
       </button>
 
       <Modal open={open} onClose={() => setOpen(false)} title="신고하기">
